@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Models.Interfaces;
+using NetCore7API.EFCore.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,13 @@ namespace NetCore7API.EFCore.Context
         public DbSet<Domain.Models.Post> Posts { get; set; }
 
         public DbSet<Domain.Models.Comment> Comments { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.ApplyGlobalFilters<ISoftDeletedEntity>(x => x.Deleted == false);
+        }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
