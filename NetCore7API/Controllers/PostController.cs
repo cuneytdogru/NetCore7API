@@ -98,11 +98,9 @@ namespace NetCore7API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _postService.GetAsync(id);
-            if (resource == null)
-                return NotFound();
+            await _postService.DeleteAsync(id);
 
-            return Ok(resource);
+            return NoContent();
         }
     }
 }
