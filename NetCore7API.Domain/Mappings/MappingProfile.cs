@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using NetCore7API.Domain.DTOs.Comment;
 using NetCore7API.Domain.DTOs.Post;
+using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,9 @@ namespace NetCore7API.Domain.Mappings
                 .ReverseMap().IgnoreAllPropertiesWithAnInaccessibleSetter();
 
             CreateMap<Comment, CommentDto>()
+                .ReverseMap().IgnoreAllPropertiesWithAnInaccessibleSetter();
+
+            CreateMap<User, UserDto>()
                 .ReverseMap().IgnoreAllPropertiesWithAnInaccessibleSetter();
         }
     }

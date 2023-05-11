@@ -21,6 +21,7 @@ namespace NetCore7API.EFCore
             services.AddScoped(typeof(Domain.Repositories.IRepository<>), typeof(Repository<>));
             services.AddScoped(typeof(Domain.Repositories.IUnitOfWork), typeof(BlogUnitOfWork));
             services.AddScoped(typeof(IPostRepository), typeof(PostRepository));
+            services.AddScoped(typeof(IUserRepository), typeof(UserRepository));
 
             return services;
         }

@@ -13,6 +13,7 @@ namespace NetCore7API.Services
         {
             services.AddScoped(typeof(Domain.Services.IPostService), typeof(PostService));
             services.AddScoped(typeof(Domain.Services.ICommentService), typeof(CommentService));
+            services.AddScoped(typeof(Domain.Services.IUserService), typeof(UserService));
 
             services.AddAutoMapper(new[]
             {

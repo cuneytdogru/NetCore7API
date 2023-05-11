@@ -18,8 +18,8 @@ namespace NetCore7API.EFCore.Context
         }
 
         public DbSet<Domain.Models.Post> Posts { get; set; }
-
         public DbSet<Domain.Models.Comment> Comments { get; set; }
+        public DbSet<Domain.Models.User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
