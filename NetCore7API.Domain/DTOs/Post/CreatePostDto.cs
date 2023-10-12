@@ -15,7 +15,5 @@ namespace NetCore7API.Domain.DTOs.Post
         public string Text { get; set; } = string.Empty;
 
         public string? ImageURL { get; set; }
-
-        public string? FullName { get; set; }
     }
 }

@@ -6,22 +6,23 @@ namespace NetCore7API.Domain.Models
 {
     public class Comment : BaseEntity
     {
-        public Guid PostId { get; set; }
-        public string Text { get; set; }
-        public bool Hidden { get; set; }
-        public string FullName { get; set; }
+        public Guid PostId { get; private set; }
+        public Guid UserId { get; private set; }
+        public string Text { get; private set; }
+        public bool Hidden { get; private set; }
 
         public virtual Post Post { get; set; }
+        public virtual User User { get; set; }
 
         public Comment(
             Guid postId,
+            Guid userId,
             string text,
-            string? fullName = Constants.AnonymousFullName,
             bool hidden = false)
         {
             this.PostId = postId;
+            this.UserId = userId;
             this.Text = text;
-            this.FullName = string.IsNullOrWhiteSpace(fullName) ? Constants.AnonymousFullName : fullName;
             this.Hidden = hidden;
         }
 

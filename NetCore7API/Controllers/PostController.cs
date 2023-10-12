@@ -74,7 +74,7 @@ namespace NetCore7API.Controllers
             return Ok(resource);
         }
 
-        [HttpPut("{id}/Like")]
+        [HttpPut("{id}/like")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PostDto>> LikeAsync(Guid id, [FromBody] LikePostDto dto)

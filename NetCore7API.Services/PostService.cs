@@ -6,22 +6,29 @@ using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Repositories;
 using NetCore7API.Domain.Extensions;
 using NetCore7API.Domain.DTOs;
+using NetCore7API.Domain.Services;
 
 namespace NetCore7API.Services
 {
     public class PostService : Domain.Services.IPostService
     {
         private readonly IPostRepository _postRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public PostService(
             IPostRepository postRepository,
+            IUserRepository userRepository,
+            ITokenService tokenService,
             IUnitOfWork unitOfWork,
             IMapper mapper
             )
         {
             _postRepository = postRepository;
+            _userRepository = userRepository;
+            _tokenService = tokenService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -39,69 +46,88 @@ namespace NetCore7API.Services
 
         public async Task<PostDto> GetAsync(Guid id)
         {
-            var entity = await _postRepository.GetPostDetailAsync(id);
+            var post = await _postRepository.GetPostDetailAsync(id);
 
-            if (entity == null)
+            if (post is null)
                 throw new UserException("Post not found.");
 
-            return _mapper.Map<PostDto>(entity);
+            return _mapper.Map<PostDto>(post);
         }
 
         public async Task<PostDto> CreateAsync(CreatePostDto dto)
         {
-            var entity = new Post(dto.Text, dto.ImageURL, dto.FullName);
+            var user = await _userRepository.FindAsync(_tokenService.UserId);
 
-            _postRepository.Add(entity);
+            if (user is null)
+                throw new UserException("Failed to find User!");
+
+            var post = new Post(user.Id, dto.Text, dto.ImageURL);
+
+            _postRepository.Add(post);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<PostDto>(entity);
+            return _mapper.Map<PostDto>(post);
         }
 
         public async Task<PostDto> UpdateAsync(Guid id, UpdatePostDto dto)
         {
-            var entity = await _postRepository.FindAsync(id);
+            var post = await _postRepository.FindAsync(id);
 
-            if (entity == null)
+            if (post is null)
                 throw new UserException("Post not found.");
 
-            entity.Update(dto);
+            if (post.UserId != _tokenService.UserId)
+                throw new UserException("You are not authorized to modify this post.");
 
-            _postRepository.Update(entity);
+            post.Update(dto);
+
+            _postRepository.Update(post);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<PostDto>(entity);
+            return _mapper.Map<PostDto>(post);
         }
 
         public async Task<PostDto> LikeAsync(Guid id, LikePostDto dto)
         {
-            var entity = await _postRepository.FindAsync(id);
+            var user = await _userRepository.FindAsync(_tokenService.UserId);
 
-            if (entity == null)
+            if (user is null)
+                throw new UserException("Failed to find User!");
+
+            var post = await _postRepository.FindAsync(id);
+
+            if (post is null)
                 throw new UserException("Post not found.");
 
-            entity.Like(dto);
+            if (!dto.IsLiked)
+                await _postRepository.LoadLike(post, user.Id);
 
-            _postRepository.Update(entity);
+            post.Like(user.Id, dto);
+
+            _postRepository.Update(post);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<PostDto>(entity);
+            return _mapper.Map<PostDto>(post);
         }
 
         public async Task<PostDto> DeleteAsync(Guid id)
         {
-            var entity = await _postRepository.FindAsync(id);
+            var post = await _postRepository.FindAsync(id);
 
-            if (entity == null)
+            if (post is null)
                 throw new Exception("Post not found.");
 
-            _postRepository.SoftDelete(entity);
+            if (post.UserId != _tokenService.UserId)
+                throw new UserException("You are not authorized to modify this post.");
+
+            _postRepository.SoftDelete(post);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<PostDto>(entity);
+            return _mapper.Map<PostDto>(post);
         }
     }
 }

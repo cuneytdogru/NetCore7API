@@ -17,6 +17,6 @@ namespace NetCore7API.Domain.DTOs.Comment
         [Required]
         public Guid PostId { get; set; }
 
-        public string? FullName { get; set; }
+        public Guid? CommentId { get; set; }
     }
 }

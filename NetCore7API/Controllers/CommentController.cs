@@ -73,7 +73,7 @@ namespace NetCore7API.Controllers
             return Ok(resource);
         }
 
-        [HttpPut("{id}/Hide")]
+        [HttpPut("{id}/hide")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<CommentDto>> HideAsync(Guid id, [FromBody] HideCommentDto dto)
