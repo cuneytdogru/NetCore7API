@@ -5,22 +5,29 @@ using NetCore7API.Domain.Filters;
 using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Repositories;
 using NetCore7API.Domain.DTOs;
+using NetCore7API.Domain.Services;
 
 namespace NetCore7API.Services
 {
     public class CommentService : Domain.Services.ICommentService
     {
         private readonly IRepository<Comment> _commentRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public CommentService(
             IRepository<Comment> commentRepository,
+            IUserRepository userRepository,
+            ITokenService tokenService,
             IUnitOfWork unitOfWork,
             IMapper mapper
             )
         {
             _commentRepository = commentRepository;
+            _userRepository = userRepository;
+            _tokenService = tokenService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -38,69 +45,83 @@ namespace NetCore7API.Services
 
         public async Task<CommentDto> GetAsync(Guid id)
         {
-            var entity = await _commentRepository.FindAsync(id);
+            var comment = await _commentRepository.FindAsync(id);
 
-            if (entity == null)
-                throw new UserException("Comment not found.");
+            if (comment is null)
+                throw new Exception("Comment not found.");
 
-            return _mapper.Map<CommentDto>(entity);
+            return _mapper.Map<CommentDto>(comment);
         }
 
         public async Task<CommentDto> CreateAsync(CreateCommentDto dto)
         {
-            var entity = new Comment(dto.PostId, dto.Text, dto.FullName);
+            var user = await _userRepository.FindAsync(_tokenService.UserId);
 
-            _commentRepository.Add(entity);
+            if (user is null)
+                throw new UserException("Cannot find User");
+
+            var comment = new Comment(dto.PostId, user.Id, dto.Text);
+
+            _commentRepository.Add(comment);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<CommentDto>(entity);
+            return _mapper.Map<CommentDto>(comment);
         }
 
         public async Task<CommentDto> UpdateAsync(Guid id, UpdateCommentDto dto)
         {
-            var entity = await _commentRepository.FindAsync(id);
+            var comment = await _commentRepository.FindAsync(id);
 
-            if (entity == null)
-                throw new UserException("Comment not found.");
+            if (comment is null)
+                throw new Exception("Comment not found.");
 
-            entity.Update(dto);
+            if (comment.UserId != _tokenService.UserId)
+                throw new UserException("You are not authorized to modify this comment.");
 
-            _commentRepository.Update(entity);
+            comment.Update(dto);
+
+            _commentRepository.Update(comment);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<CommentDto>(entity);
+            return _mapper.Map<CommentDto>(comment);
         }
 
         public async Task<CommentDto> HideAsync(Guid id, HideCommentDto dto)
         {
-            var entity = await _commentRepository.FindAsync(id);
+            var comment = await _commentRepository.FindAsync(id);
 
-            if (entity == null)
-                throw new UserException("Comment not found.");
+            if (comment is null)
+                throw new Exception("Comment not found.");
 
-            entity.Hide(dto);
+            if (comment.UserId != _tokenService.UserId)
+                throw new UserException("You are not authorized to modify this comment.");
 
-            _commentRepository.Update(entity);
+            comment.Hide(dto);
+
+            _commentRepository.Update(comment);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<CommentDto>(entity);
+            return _mapper.Map<CommentDto>(comment);
         }
 
         public async Task<CommentDto> DeleteAsync(Guid id)
         {
-            var entity = await _commentRepository.FindAsync(id);
+            var comment = await _commentRepository.FindAsync(id);
 
-            if (entity == null)
+            if (comment is null)
                 throw new Exception("Comment not found.");
 
-            _commentRepository.SoftDelete(entity);
+            if (comment.UserId != _tokenService.UserId)
+                throw new UserException("You are not authorized to modify this comment.");
+
+            _commentRepository.SoftDelete(comment);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<CommentDto>(entity);
+            return _mapper.Map<CommentDto>(comment);
         }
     }
 }

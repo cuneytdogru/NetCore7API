@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NetCore7API.EFCore;
 using NetCore7API.EFCore.Context;
 
@@ -14,6 +15,7 @@ namespace NetCore7API.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> SeedAsync()
         {
             await RandomDataSeeder.Seed(_context);

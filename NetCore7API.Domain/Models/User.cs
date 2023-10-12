@@ -2,6 +2,7 @@
 using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Exceptions;
 using NetCore7API.Domain.Models.Interfaces;
+using NetCore7API.Domain.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,17 +13,23 @@ namespace NetCore7API.Domain.Models
 {
     public class User : BaseEntity
     {
-        public string UserName { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-        public string FullName { get; set; }
+        public string UserName { get; private set; }
+        public string Email { get; private set; }
+        public string FullName { get; private set; }
+        public string Password { get; private set; }
+        public string PasswordSalt { get; private set; }
 
-        public User(string userName, string email, string password, string fullName)
+        public ICollection<Post> Posts { get; set; }
+        public ICollection<Comment> Comments { get; set; }
+        public ICollection<Like> Likes { get; set; }
+
+        public User(string userName, string email, string fullName, string password)
         {
             this.UserName = userName;
             this.Email = email;
-            this.Password = password;
             this.FullName = fullName;
+
+            this.SetPassword(password);
         }
 
         public void Update(UpdateUserDto dto)
@@ -31,12 +38,22 @@ namespace NetCore7API.Domain.Models
             this.FullName = dto.FullName;
         }
 
+        internal void SetPassword(string password)
+        {
+            this.PasswordSalt = PasswordHasher.GenerateSalt();
+            this.Password = PasswordHasher.ComputeHash(
+                password,
+                PasswordSalt,
+                AppSettings.Password.Pepper,
+                AppSettings.Password.Iteration);
+        }
+
         public void ChangePassword(ChangePasswordDto dto)
         {
             if (this.Password != dto.OldPassword)
                 throw new UserException("Old password is invalid!");
 
-            this.Password = dto.NewPassword;
+            SetPassword(dto.NewPassword);
         }
     }
 }

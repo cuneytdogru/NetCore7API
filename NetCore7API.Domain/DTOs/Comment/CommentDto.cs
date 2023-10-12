@@ -1,4 +1,5 @@
 ﻿using NetCore7API.Domain.DTOs.Interfaces;
+using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Models.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,8 +14,10 @@ namespace NetCore7API.Domain.DTOs.Comment
     {
         public string Text { get; internal set; }
 
-        public string? FullName { get; internal set; }
-
         public Guid PostId { get; internal set; }
+
+        public Guid UserId { get; internal set; }
+
+        public PublicUserDto User { get; internal set; }
     }
 }

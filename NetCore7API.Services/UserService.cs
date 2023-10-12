@@ -6,17 +6,20 @@ using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Repositories;
 using NetCore7API.Domain.Extensions;
 using NetCore7API.Domain.DTOs;
+using NetCore7API.Domain.Services;
 
 namespace NetCore7API.Services
 {
     public class UserService : Domain.Services.IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public UserService(
             IUserRepository userRepository,
+            ITokenService tokenService,
             IUnitOfWork unitOfWork,
             IMapper mapper
             )
@@ -28,18 +31,19 @@ namespace NetCore7API.Services
 
         public async Task<UserDto> GetAsync(Guid id)
         {
-            var entity = await _userRepository.GetAsync(id);
-
-            if (entity == null)
+            if (id != _tokenService.UserId)
                 throw new UserException("User not found.");
 
-            return _mapper.Map<UserDto>(entity);
+            var user = await _userRepository.GetAsync(id);
+
+            if (user is null)
+                throw new UserException("User not found.");
+
+            return _mapper.Map<UserDto>(user);
         }
 
         public async Task<UserDto> RegisterAsync(RegisterUserDto dto)
         {
-            var entity = new User(dto.UserName, dto.Email, dto.Password, dto.FullName);
-
             var isUserNameExists = await _userRepository.IsUserNameInUse(dto.UserName);
             if (isUserNameExists)
                 throw new UserException("Username already in use! Please type another username.");
@@ -48,61 +52,72 @@ namespace NetCore7API.Services
             if (isEmailExists)
                 throw new UserException("Email address already in use! Please type another email.");
 
-            _userRepository.Add(entity);
+            var user = new User(dto.UserName, dto.Email, dto.FullName, dto.Password);
+
+            _userRepository.Add(user);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<UserDto>(entity);
+            return _mapper.Map<UserDto>(user);
         }
 
         public async Task<UserDto> UpdateAsync(Guid id, UpdateUserDto dto)
         {
+            if (id != _tokenService.UserId)
+                throw new UserException("User not found.");
+
             var isUserNameExists = await _userRepository.IsUserNameInUse(dto.UserName, id);
             if (isUserNameExists)
                 throw new UserException("Username already in use! Please type another username.");
 
-            var entity = await _userRepository.FindAsync(id);
+            var user = await _userRepository.FindAsync(id);
 
-            if (entity == null)
+            if (user is null)
                 throw new UserException("User not found.");
 
-            entity.Update(dto);
+            user.Update(dto);
 
-            _userRepository.Update(entity);
+            _userRepository.Update(user);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<UserDto>(entity);
+            return _mapper.Map<UserDto>(user);
         }
 
         public async Task<UserDto> ChangePasswordAsync(Guid id, ChangePasswordDto dto)
         {
-            var entity = await _userRepository.FindAsync(id);
-
-            if (entity == null)
+            if (id != _tokenService.UserId)
                 throw new UserException("User not found.");
 
-            entity.ChangePassword(dto);
+            var user = await _userRepository.FindAsync(id);
 
-            _userRepository.Update(entity);
+            if (user is null)
+                throw new UserException("User not found.");
+
+            user.ChangePassword(dto);
+
+            _userRepository.Update(user);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<UserDto>(entity);
+            return _mapper.Map<UserDto>(user);
         }
 
         public async Task<UserDto> DeleteAsync(Guid id)
         {
-            var entity = await _userRepository.FindAsync(id);
+            if (id != _tokenService.UserId)
+                throw new UserException("User not found.");
 
-            if (entity == null)
+            var user = await _userRepository.FindAsync(id);
+
+            if (user is null)
                 throw new Exception("User not found.");
 
-            _userRepository.SoftDelete(entity);
+            _userRepository.SoftDelete(user);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<UserDto>(entity);
+            return _mapper.Map<UserDto>(user);
         }
     }
 }

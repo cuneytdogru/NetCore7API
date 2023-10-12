@@ -19,9 +19,10 @@ namespace NetCore7API.EFCore
             services.AddDbContext<BlogContext>(options => options.UseSqlServer(configuration.GetConnectionString("BlogContext")));
 
             services.AddScoped(typeof(Domain.Repositories.IRepository<>), typeof(Repository<>));
-            services.AddScoped(typeof(Domain.Repositories.IUnitOfWork), typeof(BlogUnitOfWork));
-            services.AddScoped(typeof(IPostRepository), typeof(PostRepository));
-            services.AddScoped(typeof(IUserRepository), typeof(UserRepository));
+            services.AddScoped<IUnitOfWork, BlogUnitOfWork>();
+            services.AddScoped<IPostRepository, PostRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ITokenRepository, TokenRepository>();
 
             return services;
         }

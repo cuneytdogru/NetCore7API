@@ -44,5 +44,14 @@ namespace NetCore7API.EFCore.Repositories
 
             return post;
         }
+
+        public async Task<Post?> LoadLike(Post post, Guid userId)
+        {
+            await Context.Entry(post)
+                .Collection(x => x.Likes.Where(x => x.UserId == userId))
+                .LoadAsync();
+
+            return post;
+        }
     }
 }

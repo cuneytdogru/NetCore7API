@@ -17,13 +17,63 @@ namespace NetCore7API.EFCore.Context
         {
         }
 
-        public DbSet<Domain.Models.Post> Posts { get; set; }
-        public DbSet<Domain.Models.Comment> Comments { get; set; }
-        public DbSet<Domain.Models.User> Users { get; set; }
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Token> Tokens { get; set; }
+        public DbSet<Like> Likes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<User>()
+              .HasMany(u => u.Comments)
+              .WithOne(c => c.User)
+              .HasForeignKey(c => c.UserId)
+              .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>()
+              .HasMany(u => u.Posts)
+              .WithOne(p => p.User)
+              .HasForeignKey(p => p.UserId)
+              .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>()
+              .HasMany(u => u.Likes)
+              .WithOne(l => l.User)
+              .HasForeignKey(l => l.UserId)
+              .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Post>()
+             .HasOne(p => p.User)
+             .WithMany(u => u.Posts)
+             .HasForeignKey(c => c.UserId)
+             .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Post>()
+             .HasMany(p => p.Comments)
+             .WithOne(c => c.Post)
+             .HasForeignKey(c => c.PostId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Post>()
+             .HasMany(p => p.Likes)
+             .WithOne(l => l.Post)
+             .HasForeignKey(c => c.PostId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Comment>()
+             .HasOne(c => c.User)
+             .WithMany(u => u.Comments)
+             .HasForeignKey(c => c.UserId)
+             .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Like>()
+             .HasOne(l => l.User)
+             .WithMany(u => u.Likes)
+             .HasForeignKey(c => c.UserId)
+             .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.ApplyGlobalFilters<ISoftDeletedEntity>(x => x.Deleted == false);
         }

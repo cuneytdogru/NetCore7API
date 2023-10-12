@@ -19,5 +19,7 @@ namespace NetCore7API.Domain.Repositories
         Task<IEnumerable<Post>> ListBlogFeedAsync(PostFilter filter);
 
         Task<Post?> GetPostDetailAsync(Guid id);
+
+        Task<Post?> LoadLike(Post post, Guid userId);
     }
 }
