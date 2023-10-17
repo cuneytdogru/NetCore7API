@@ -7,6 +7,7 @@ using NetCore7API.Domain.Repositories;
 using NetCore7API.Domain.Extensions;
 using NetCore7API.Domain.DTOs;
 using NetCore7API.Domain.Services;
+using NetCore7API.Domain.DTOs.Comment;
 
 namespace NetCore7API.Services
 {
@@ -38,6 +39,11 @@ namespace NetCore7API.Services
             var response = await _postRepository.ListBlogFeedAsync(filter);
 
             var totalCount = await _postRepository.TotalCountAsync(filter);
+
+            foreach (var item in response)
+            {
+                item.IsLikedByCurrentUser = item.Likes.Any(x => x.UserId == _tokenService.UserId);
+            }
 
             var mappedResponse = _mapper.Map<IEnumerable<PostDto>>(response);
 
@@ -101,10 +107,16 @@ namespace NetCore7API.Services
             if (post is null)
                 throw new UserException("Post not found.");
 
-            if (!dto.IsLiked)
-                await _postRepository.LoadLike(post, user.Id);
+            await _postRepository.LoadLike(post, user.Id);
 
-            post.Like(user.Id, dto);
+            if (!dto.IsLiked)
+            {
+                post.RemoveLike(user.Id);
+            }
+            else
+            {
+                post.AddLike(user.Id);
+            }
 
             _postRepository.Update(post);
 
@@ -128,6 +140,94 @@ namespace NetCore7API.Services
             await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<PostDto>(post);
+        }
+
+        public async Task<PagedResponse<CommentDto, CommentFilter>> ListCommentsAsync(Guid id, CommentFilter filter)
+        {
+            var response = await _postRepository.ListCommentsAsync(id, filter);
+
+            var totalCount = await _postRepository.TotalCommentCountAsync(id, filter);
+
+            var mappedResponse = _mapper.Map<IEnumerable<CommentDto>>(response);
+
+            return new PagedResponse<CommentDto, CommentFilter>(mappedResponse, filter, totalCount);
+        }
+
+        public async Task<CommentDto> GetCommentAsync(Guid id, Guid commentId)
+        {
+            var comment = await _postRepository.GetCommentAsync(commentId);
+
+            if (comment is null || comment.PostId != id)
+                throw new UserException("Comment not found.");
+
+            return _mapper.Map<CommentDto>(comment);
+        }
+
+        public async Task<CommentDto> AddCommentAsync(Guid id, CreateCommentDto dto)
+        {
+            var user = await _userRepository.FindAsync(_tokenService.UserId);
+
+            if (user is null)
+                throw new UserException("Failed to find User!");
+
+            var post = await _postRepository.FindAsync(id);
+
+            if (post is null)
+                throw new UserException("Post not found.");
+
+            var comment = post.AddComment(user.Id, dto);
+
+            _postRepository.Update(post);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return _mapper.Map<CommentDto>(comment);
+        }
+
+        public async Task<CommentDto> UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentDto dto)
+        {
+            var user = await _userRepository.FindAsync(_tokenService.UserId);
+
+            if (user is null)
+                throw new UserException("Failed to find User!");
+
+            var post = await _postRepository.FindAsync(id);
+
+            if (post is null)
+                throw new UserException("Post not found.");
+
+            await _postRepository.LoadComment(post, commentId);
+
+            var comment = post.UpdateComment(user.Id, commentId, dto);
+
+            _postRepository.Update(post);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return _mapper.Map<CommentDto>(comment);
+        }
+
+        public async Task<CommentDto> RemoveCommentAsync(Guid id, Guid commentId)
+        {
+            var user = await _userRepository.FindAsync(_tokenService.UserId);
+
+            if (user is null)
+                throw new UserException("Failed to find User!");
+
+            var post = await _postRepository.FindAsync(id);
+
+            if (post is null)
+                throw new UserException("Post not found.");
+
+            await _postRepository.LoadComment(post, commentId);
+
+            var comment = post.RemoveComment(user.Id, commentId);
+
+            _postRepository.Update(post);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return _mapper.Map<CommentDto>(comment);
         }
     }
 }

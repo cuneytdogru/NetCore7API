@@ -9,12 +9,12 @@ namespace NetCore7API.Domain.Filters
 {
     public class CommentFilter : BaseEntityFilter<Comment>
     {
-        public Guid? PostId { get; set; }
+        public bool ShowHidden { get; set; } = false;
 
         public override IQueryable<Comment> Apply(IQueryable<Comment> query, bool ignoreSkipTake = false)
         {
-            if (PostId.HasValue)
-                query = query.Where(x => x.PostId == PostId);
+            if (!ShowHidden)
+                query = query.Where(x => x.Hidden == false);
 
             return base.Apply(query, ignoreSkipTake);
         }

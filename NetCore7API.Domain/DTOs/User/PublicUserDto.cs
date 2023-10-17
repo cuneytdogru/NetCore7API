@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace NetCore7API.Domain.DTOs.User
 {
-    public class PublicUserDto : BaseDto
+    public class PublicUserDto
     {
-        public string UserName { get; set; }
+        public Guid Id { get; set; }
 
-        public string Email { get; set; }
+        public string UserName { get; set; }
 
         public string FullName { get; set; }
     }

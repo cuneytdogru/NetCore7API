@@ -27,6 +27,8 @@ namespace NetCore7API.EFCore.Context
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.ApplyGlobalFilters<ISoftDeletedEntity>(x => x.Deleted == false);
+
             modelBuilder.Entity<User>()
               .HasMany(u => u.Comments)
               .WithOne(c => c.User)
@@ -69,13 +71,31 @@ namespace NetCore7API.EFCore.Context
              .HasForeignKey(c => c.UserId)
              .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<Comment>()
+             .HasMany(c => c.Likes)
+             .WithOne(l => l.Comment)
+             .HasForeignKey(c => c.CommentId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Like>()
+             .HasOne(l => l.Post)
+             .WithMany(p => p.Likes)
+             .HasForeignKey(l => l.PostId)
+             .IsRequired()
+             .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Like>()
              .HasOne(l => l.User)
              .WithMany(u => u.Likes)
-             .HasForeignKey(c => c.UserId)
-             .OnDelete(DeleteBehavior.NoAction);
+             .HasForeignKey(l => l.UserId)
+             .IsRequired()
+             .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.ApplyGlobalFilters<ISoftDeletedEntity>(x => x.Deleted == false);
+            modelBuilder.Entity<Like>()
+             .HasOne(l => l.Comment)
+             .WithMany(c => c.Likes)
+             .HasForeignKey(l => l.CommentId)
+             .OnDelete(DeleteBehavior.ClientCascade);
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())

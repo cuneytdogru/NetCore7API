@@ -11,6 +11,8 @@ namespace NetCore7API.Domain.Models
         public string Text { get; private set; }
         public bool Hidden { get; private set; }
 
+        public ICollection<Like> Likes { get; set; }
+
         public virtual Post Post { get; set; }
         public virtual User User { get; set; }
 
@@ -24,6 +26,8 @@ namespace NetCore7API.Domain.Models
             this.UserId = userId;
             this.Text = text;
             this.Hidden = hidden;
+
+            Likes = new HashSet<Like>();
         }
 
         public void Update(UpdateCommentDto dto)

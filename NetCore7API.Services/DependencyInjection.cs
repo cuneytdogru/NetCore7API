@@ -13,7 +13,6 @@ namespace NetCore7API.Services
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddScoped<IPostService, PostService>();
-            services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
 

@@ -1,5 +1,6 @@
 ﻿using NetCore7API.Domain.DTOs.Comment;
 using NetCore7API.Domain.DTOs.Interfaces;
+using NetCore7API.Domain.DTOs.Like;
 using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Models.Interfaces;
 using System;
@@ -17,7 +18,9 @@ namespace NetCore7API.Domain.DTOs.Post
 
         public string? ImageURL { get; internal set; }
 
-        public int Likes { get; internal set; }
+        public bool IsLikedByCurrentUser { get; internal set; }
+
+        public int TotalLikes { get; internal set; }
 
         public int TotalComments { get; internal set; }
 

@@ -1,4 +1,5 @@
-﻿using NetCore7API.Domain.DTOs.Post;
+﻿using NetCore7API.Domain.DTOs.Comment;
+using NetCore7API.Domain.DTOs.Post;
 using NetCore7API.Domain.Models.Interfaces;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -8,15 +9,22 @@ namespace NetCore7API.Domain.Models
     {
         public string Text { get; private set; }
         public string? ImageURL { get; private set; } = null;
+        public int TotalComments { get; private set; }
         public int TotalLikes { get; private set; }
         public Guid UserId { get; private set; }
-
-        [NotMapped]
-        public int TotalComments { get; set; }
 
         public ICollection<Comment> Comments { get; set; }
         public ICollection<Like> Likes { get; set; }
         public User User { get; set; }
+
+        [NotMapped]
+        public bool IsLikedByCurrentUser { get; set; }
+
+        private Post()
+        {
+            this.Likes = new HashSet<Like>();
+            this.Comments = new HashSet<Comment>();
+        }
 
         public Post(
             Guid userId,
@@ -28,6 +36,9 @@ namespace NetCore7API.Domain.Models
             this.ImageURL = imageURL;
             this.TotalLikes = 0;
             this.TotalComments = 0;
+
+            this.Likes = new HashSet<Like>();
+            this.Comments = new HashSet<Comment>();
         }
 
         public void Update(UpdatePostDto dto)
@@ -36,13 +47,16 @@ namespace NetCore7API.Domain.Models
             this.ImageURL = dto.ImageURL;
         }
 
-        internal void AddLike(Guid userId)
+        public void AddLike(Guid userId)
         {
+            if (this.Likes.Any(x => x.UserId == userId))
+                return;
+
             this.Likes.Add(new Models.Like(this.Id, userId));
             this.TotalLikes++;
         }
 
-        internal void RemoveLike(Guid userId)
+        public void RemoveLike(Guid userId)
         {
             var like = this.Likes.FirstOrDefault(x => x.UserId == userId);
 
@@ -55,12 +69,44 @@ namespace NetCore7API.Domain.Models
             }
         }
 
-        public void Like(Guid userId, LikePostDto dto)
+        public Comment AddComment(Guid userId, CreateCommentDto dto)
         {
-            if (dto.IsLiked)
-                this.AddLike(userId);
-            else
-                this.RemoveLike(userId);
+            var comment = new Models.Comment(this.Id, userId, dto.Text);
+            this.Comments.Add(comment);
+            this.TotalComments++;
+
+            return comment;
+        }
+
+        public Comment UpdateComment(Guid userId, Guid commentId, UpdateCommentDto dto)
+        {
+            var comment = this.Comments
+                .Where(x => x.UserId == userId)
+                .FirstOrDefault(x => x.Id == commentId);
+
+            if (comment is not null)
+            {
+                comment.Update(dto);
+            }
+
+            return comment;
+        }
+
+        public Comment RemoveComment(Guid userId, Guid commentId)
+        {
+            var comment = this.Comments
+                .Where(x => x.UserId == userId)
+                .FirstOrDefault(x => x.Id == commentId);
+
+            if (comment is not null)
+            {
+                this.Comments.Remove(comment);
+
+                if (this.TotalComments > 0)
+                    this.TotalComments--;
+            }
+
+            return comment;
         }
     }
 }
