@@ -64,7 +64,7 @@ namespace NetCore7API.Domain.Models
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                new Claim("Id", this.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sid, this.UserId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Sub, this.UserName),
 
                 new Claim(JwtRegisteredClaimNames.Name, this.FullName),

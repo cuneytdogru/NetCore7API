@@ -23,15 +23,16 @@ namespace NetCore7API.Authorization
 
             var context = contextAccessor.HttpContext;
 
-            if (!context.GetEndpoint().Metadata.Any(x => x is AuthorizeAttribute))
+            if (!context.GetEndpoint().Metadata.Any(x => x is AuthorizeAttribute) ||
+                context.GetEndpoint().Metadata.Any(x => x is AllowAnonymousAttribute))
             {
                 return;
             }
 
-            if (!context.Items.TryGetValue("Authorization", out var authorization))
+            if (!context.Request.Headers.TryGetValue("Authorization", out var authorization))
                 throw new TokenException("Failed to get Authorization!");
 
-            if (authorization == null)
+            if (string.IsNullOrWhiteSpace(authorization))
                 throw new TokenException("Authorization is null!");
 
             var token = authorization.ToString();
@@ -39,11 +40,14 @@ namespace NetCore7API.Authorization
             if (string.IsNullOrWhiteSpace(token))
                 throw new TokenException("Token is empty!");
 
+            if (token.StartsWith("Bearer"))
+                token = token.Substring(6).Trim();
+
             this.Token = new JwtSecurityToken(jwtEncodedString: token);
             if (this.Token == null)
                 throw new TokenException("Token is invalid!");
 
-            this.UserId = Guid.Parse(Token.Id);
+            this.UserId = Guid.Parse(Token.Payload.GetValueOrDefault(JwtRegisteredClaimNames.Sid).ToString());
         }
     }
 }

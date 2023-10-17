@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NetCore7API.Domain.DTOs;
 using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Filters;
@@ -30,6 +31,7 @@ namespace NetCore7API.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<UserDto>> UserAsync([FromBody] RegisterUserDto dto)

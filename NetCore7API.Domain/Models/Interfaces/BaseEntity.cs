@@ -8,10 +8,6 @@ namespace NetCore7API.Domain.Models.Interfaces
 {
     public abstract class BaseEntity : IEntity, IAuditedEntity, ISoftDeletedEntity
     {
-        public BaseEntity() { 
-            this.Id = Guid.NewGuid();
-        }
-
         public Guid Id { get; set; }
         public DateTime CreatedDate { get; set; }
         public Guid CreatedBy { get; set; }

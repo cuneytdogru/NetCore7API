@@ -128,10 +128,10 @@ namespace NetCore7API.EFCore
 
         public static async Task Seed(BlogContext context)
         {
+            Random randomGenerator = new Random();
+
             if (!context.Users.Any())
             {
-                Random randomGenerator = new Random();
-
                 for (int k = 0; k < NamesList.Count; k++)
                 {
                     var lowerCaseTrimmedName = NamesList[k].Replace(" ", "_").ToLower();
@@ -145,42 +145,35 @@ namespace NetCore7API.EFCore
                 }
 
                 await context.SaveChangesAsync();
+            }
 
-                if (!context.Posts.Any())
+            if (!context.Posts.Any())
+            {
+                context.Users.ToList();
+
+                for (int k = 0; k < NUMBER_OF_POSTS; k++)
                 {
-                    context.Users.ToList();
+                    var post = new Domain.Models.Post(
+                        context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)).Id,
+                        TextList.ElementAt(randomGenerator.Next(TextList.Count)),
+                        ImageList.ElementAt(randomGenerator.Next(ImageList.Count)));
 
-                    for (int k = 0; k < NUMBER_OF_POSTS; k++)
+                    var numberOfComments = randomGenerator.Next(TextList.Count);
+                    var numberOfLikes = randomGenerator.Next(TextList.Count);
+
+                    for (int c = 0; c < numberOfComments; c++)
                     {
-                        var post = new Domain.Models.Post(
-                            context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)).Id,
-                            ImageList.ElementAt(randomGenerator.Next(ImageList.Count)),
-                            NamesList.ElementAt(randomGenerator.Next(NamesList.Count)));
-
-                        var numberOfComments = randomGenerator.Next(TextList.Count);
-                        var numberOfLikes = randomGenerator.Next(TextList.Count);
-
-                        context.Posts.Add(post);
-
-                        for (int c = 0; c < numberOfComments; c++)
-                        {
-                            var comment = new Domain.Models.Comment(
-                                post.Id,
-                                context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)).Id,
-                                TextList.ElementAt(randomGenerator.Next(TextList.Count)));
-
-                            context.Comments.Add(comment);
-                        }
-
-                        for (int l = 0; l < numberOfLikes; l++)
-                        {
-                            var likes = new Domain.Models.Like(
-                                post.Id,
-                                context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)).Id);
-
-                            context.Likes.Add(likes);
-                        }
+                        post.AddComment(context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)).Id,
+                            new Domain.DTOs.Comment.CreateCommentDto() { Text = TextList.ElementAt(randomGenerator.Next(TextList.Count)) });
                     }
+
+                    for (int l = 0; l < numberOfLikes; l++)
+                    {
+                        post.AddLike(
+                            context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)).Id);
+                    }
+
+                    context.Posts.Add(post);
                 }
 
                 await context.SaveChangesAsync();
