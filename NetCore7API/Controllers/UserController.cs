@@ -4,6 +4,7 @@ using NetCore7API.Domain.DTOs;
 using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Filters;
 using NetCore7API.Domain.Models.Interfaces;
+using NetCore7API.Domain.Providers;
 using NetCore7API.Domain.Services;
 using System.Diagnostics;
 
@@ -13,9 +14,12 @@ namespace NetCore7API.Controllers
     {
         private readonly IUserService _userService;
 
-        public UserController(IUserService userService)
+        private readonly IUserProvider _userProvider;
+
+        public UserController(IUserService userService, IUserProvider userProvider)
         {
             _userService = userService;
+            _userProvider = userProvider;
         }
 
         [HttpGet("{id}")]
@@ -23,7 +27,7 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<UserDto>> GetAsync(Guid id)
         {
-            var resource = await _userService.GetAsync(id);
+            var resource = await _userProvider.GetUserAsync(id);
             if (resource == null)
                 return NotFound();
 

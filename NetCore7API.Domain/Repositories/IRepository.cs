@@ -27,7 +27,7 @@ namespace NetCore7API.Domain.Repositories
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        ValueTask<T?> FindAsync(object key);
+        ValueTask<T?> FindAsync(Guid id);
 
         /// <summary>
         /// Gets an entity from database with unique id.
@@ -36,35 +36,8 @@ namespace NetCore7API.Domain.Repositories
         /// <returns></returns>
         Task<T?> GetAsync(Guid id);
 
-        /// <summary>
-        /// Get an entity from database with unique id and defined includes.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="includes"></param>
-        /// <returns></returns>
-        Task<T?> GetAsync(Guid id, params Expression<Func<T, object>>[] includes);
-
         Task<IEnumerable<T>> ListAsync(BaseEntityFilter<T> filter);
 
         Task<int> TotalCountAsync(BaseEntityFilter<T> filter);
-
-        /// <summary>
-        /// Gets all records with AsNoTracking.
-        /// </summary>
-        /// <returns></returns>
-        IQueryable<T> AllAsNoTracking();
-
-        /// <summary>
-        /// Gets all records.
-        /// </summary>
-        /// <returns></returns>
-        IQueryable<T> All();
-
-        /// <summary>
-        /// Gets all records with with includes
-        /// </summary>
-        /// <param name="includes">Entities to include</param>
-        /// <returns></returns>
-        IQueryable<T> All(params Expression<Func<T, object>>[] includes);
     }
 }
