@@ -7,18 +7,15 @@ namespace NetCore7API.Domain.Models
 {
     public class Post : BaseEntity
     {
-        public string Text { get; private set; }
+        public string Text { get; private set; } = string.Empty;
         public string? ImageURL { get; private set; } = null;
         public int TotalComments { get; private set; }
         public int TotalLikes { get; private set; }
-        public Guid UserId { get; private set; }
+        public Guid UserId { get; private set; } = Guid.Empty;
 
         public ICollection<Comment> Comments { get; set; }
         public ICollection<Like> Likes { get; set; }
-        public User User { get; set; }
-
-        [NotMapped]
-        public bool IsLikedByCurrentUser { get; set; }
+        public virtual User? User { get; set; } = null;
 
         private Post()
         {
@@ -78,7 +75,7 @@ namespace NetCore7API.Domain.Models
             return comment;
         }
 
-        public Comment UpdateComment(Guid userId, Guid commentId, UpdateCommentDto dto)
+        public Comment? UpdateComment(Guid userId, Guid commentId, UpdateCommentDto dto)
         {
             var comment = this.Comments
                 .Where(x => x.UserId == userId)
@@ -92,7 +89,7 @@ namespace NetCore7API.Domain.Models
             return comment;
         }
 
-        public Comment RemoveComment(Guid userId, Guid commentId)
+        public Comment? RemoveComment(Guid userId, Guid commentId)
         {
             var comment = this.Comments
                 .Where(x => x.UserId == userId)

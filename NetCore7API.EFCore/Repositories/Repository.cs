@@ -22,44 +22,24 @@ namespace NetCore7API.EFCore.Repositories
             this.Context = context;
         }
 
-        public IQueryable<TEntity> All()
+        private TEntity? GetLocalEntity(Guid id)
         {
-            return Context.Set<TEntity>().AsQueryable();
+            return Context.Set<TEntity>().Local.SingleOrDefault(x => x.Id == id);
         }
 
-        public IQueryable<TEntity> AllAsNoTracking()
+        public async ValueTask<TEntity?> FindAsync(Guid id)
         {
-            return Context.Set<TEntity>().AsNoTracking();
+            var entity = this.GetLocalEntity(id);
+
+            if (entity is not null)
+                return entity;
+
+            return await GetAsync(id);
         }
 
-        public IQueryable<TEntity> All(params Expression<Func<TEntity, object>>[] includes)
-        {
-            var baseQuery = Context.Set<TEntity>().AsQueryable();
-
-            foreach (var include in includes)
-                baseQuery = baseQuery.Include(include);
-
-            return baseQuery;
-        }
-
-        public async ValueTask<TEntity?> FindAsync(object key)
-        {
-            return await Context.Set<TEntity>().FindAsync(key);
-        }
-
-        public async Task<TEntity?> GetAsync(Guid id)
+        public virtual async Task<TEntity?> GetAsync(Guid id)
         {
             return await Context.Set<TEntity>().SingleOrDefaultAsync(x => x.Id == id);
-        }
-
-        public async Task<TEntity?> GetAsync(Guid id, params Expression<Func<TEntity, object>>[] includes)
-        {
-            var baseQuery = Context.Set<TEntity>().AsQueryable();
-
-            foreach (var include in includes)
-                baseQuery = baseQuery.Include(include);
-
-            return await baseQuery.SingleOrDefaultAsync(a => a.Id == id);
         }
 
         public virtual void Add(TEntity entity)

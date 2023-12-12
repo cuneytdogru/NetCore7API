@@ -4,7 +4,10 @@ using NetCore7API.Domain.DTOs.Comment;
 using NetCore7API.Domain.DTOs.Post;
 using NetCore7API.Domain.Filters;
 using NetCore7API.Domain.Models.Interfaces;
+using NetCore7API.Domain.Providers;
+using NetCore7API.Domain.Repositories;
 using NetCore7API.Domain.Services;
+using NetCore7API.EFCore.Providers;
 using System.Diagnostics;
 
 namespace NetCore7API.Controllers
@@ -12,10 +15,12 @@ namespace NetCore7API.Controllers
     public class PostController : BaseApiController
     {
         private readonly IPostService _postService;
+        private readonly IPostProvider _postProvider;
 
-        public PostController(IPostService postService)
+        public PostController(IPostService postService, IPostProvider postProvider)
         {
             _postService = postService;
+            _postProvider = postProvider;
         }
 
         [HttpGet]
@@ -23,7 +28,7 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PagedResponse<PostDto, PostFilter>>> ListAsync([FromQuery] PostFilter filter)
         {
-            var resource = await _postService.ListAsync(filter);
+            var resource = await _postProvider.ListBlogFeedAsync(filter);
 
             if (resource == null)
                 return NotFound();
@@ -36,7 +41,7 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PostDto>> GetAsync(Guid id)
         {
-            var resource = await _postService.GetAsync(id);
+            var resource = await _postProvider.GetPostDetailAsync(id);
             if (resource == null)
                 return NotFound();
 
@@ -109,7 +114,7 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PagedResponse<CommentDto, CommentFilter>>> ListAsync(Guid id, [FromQuery] CommentFilter filter)
         {
-            var resource = await _postService.ListCommentsAsync(id, filter);
+            var resource = await _postProvider.ListCommentsAsync(id, filter);
 
             if (resource == null)
                 return NotFound();
@@ -117,19 +122,19 @@ namespace NetCore7API.Controllers
             return Ok(resource);
         }
 
-        [HttpGet("{id}/comment/{commentId}")]
+        [HttpGet("{id}/comments/{commentId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PostDto>> GetCommentAsync(Guid id, Guid commentId)
         {
-            var resource = await _postService.GetAsync(id);
+            var resource = await _postProvider.GetCommentAsync(id);
             if (resource == null)
                 return NotFound();
 
             return Ok(resource);
         }
 
-        [HttpPost("{id}/comment")]
+        [HttpPost("{id}/comments")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PostDto>> PostCommentAsync(Guid id, [FromBody] CreateCommentDto dto)
@@ -145,7 +150,7 @@ namespace NetCore7API.Controllers
             return CreatedAtAction(nameof(GetCommentAsync), new { id, commentId = resource.Id }, resource);
         }
 
-        [HttpPut("{id}/comment/{commentId}")]
+        [HttpPut("{id}/comments/{commentId}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PostDto>> PutCommentAsync(Guid id, Guid commentId, [FromBody] UpdateCommentDto dto)
@@ -161,7 +166,7 @@ namespace NetCore7API.Controllers
             return Ok(resource);
         }
 
-        [HttpDelete("{id}/comment/{commentId}")]
+        [HttpDelete("{id}/comments/{commentId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PostDto>> DeleteCommentAsync(Guid id, Guid commentId)

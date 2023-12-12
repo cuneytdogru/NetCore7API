@@ -7,24 +7,28 @@ using NetCore7API.Domain.Repositories;
 using NetCore7API.Domain.Extensions;
 using NetCore7API.Domain.DTOs;
 using NetCore7API.Domain.Services;
+using NetCore7API.Domain.Providers;
 
 namespace NetCore7API.Services
 {
     public class UserService : Domain.Services.IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IUserProvider _userProvider;
         private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public UserService(
             IUserRepository userRepository,
+            IUserProvider userProvider,
             ITokenService tokenService,
             IUnitOfWork unitOfWork,
             IMapper mapper
             )
         {
             _userRepository = userRepository;
+            _userProvider = userProvider;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -44,11 +48,11 @@ namespace NetCore7API.Services
 
         public async Task<UserDto> RegisterAsync(RegisterUserDto dto)
         {
-            var isUserNameExists = await _userRepository.IsUserNameInUse(dto.UserName);
+            var isUserNameExists = await _userProvider.IsUserNameInUse(dto.UserName);
             if (isUserNameExists)
                 throw new UserException("Username already in use! Please type another username.");
 
-            var isEmailExists = await _userRepository.IsEmailInUse(dto.Email);
+            var isEmailExists = await _userProvider.IsEmailInUse(dto.Email);
             if (isEmailExists)
                 throw new UserException("Email address already in use! Please type another email.");
 
@@ -66,7 +70,7 @@ namespace NetCore7API.Services
             if (id != _tokenService.UserId)
                 throw new UserException("User not found.");
 
-            var isUserNameExists = await _userRepository.IsUserNameInUse(dto.UserName, id);
+            var isUserNameExists = await _userProvider.IsUserNameInUse(dto.UserName, id);
             if (isUserNameExists)
                 throw new UserException("Username already in use! Please type another username.");
 

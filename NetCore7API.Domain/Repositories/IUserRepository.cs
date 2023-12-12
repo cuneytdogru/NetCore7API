@@ -11,14 +11,11 @@ namespace NetCore7API.Domain.Repositories
 {
     public interface IUserRepository : IRepository<User>
     {
-        Task<bool> IsUserNameInUse(string userName);
-
-        Task<bool> IsUserNameInUse(string userName, Guid except);
-
-        Task<bool> IsEmailInUse(string email);
-
-        Task<bool> IsEmailInUse(string email, Guid except);
-
+        /// <summary>
+        /// Finds an user with username.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
         Task<User?> GetByUserNameAsync(string userName);
     }
 }

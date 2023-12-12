@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
+using NetCore7API.Domain.DTOs;
 using NetCore7API.Domain.DTOs.Comment;
 using NetCore7API.Domain.DTOs.Post;
 using NetCore7API.Domain.DTOs.User;
@@ -20,32 +23,12 @@ namespace NetCore7API.EFCore.Repositories
     public class PostRepository : Repository<Post>, IPostRepository
     {
         private readonly ITokenService _tokenService;
+        private readonly IMapper _mapper;
 
-        public PostRepository(BlogContext context, ITokenService tokenService) : base(context)
+        public PostRepository(BlogContext context, ITokenService tokenService, IMapper mapper) : base(context)
         {
             _tokenService = tokenService;
-        }
-
-        public async Task<IEnumerable<Post>> ListBlogFeedAsync(PostFilter filter)
-        {
-            return await Context.Set<Post>()
-                .ApplyFilter(filter)
-                .Include(x => x.User)
-                .Include(x => x.Comments.OrderByDescending(x => x.CreatedDate).Take(1))
-                .ThenInclude(c => c.User)
-                .Include(x => x.Likes.Where(x => x.UserId == _tokenService.UserId).Take(1))
-                .ToListAsync();
-        }
-
-        public async Task<Post?> GetPostDetailAsync(Guid id)
-        {
-            return await Context.Set<Post>()
-                .Where(x => x.Id == id)
-                .Include(x => x.User)
-                .Include(x => x.Comments.OrderByDescending(x => x.CreatedDate).Take(5))
-                .ThenInclude(c => c.User)
-                .Include(x => x.Likes.Where(x => x.UserId == _tokenService.UserId).Take(1))
-                .FirstOrDefaultAsync();
+            _mapper = mapper;
         }
 
         public async Task<Post?> LoadLike(Post post, Guid userId)
@@ -57,27 +40,6 @@ namespace NetCore7API.EFCore.Repositories
                 .LoadAsync();
 
             return post;
-        }
-
-        public async Task<IEnumerable<Comment>> ListCommentsAsync(Guid id, CommentFilter filter)
-        {
-            return await Context.Set<Comment>()
-                .Where(x => x.PostId == id)
-                .Include(c => c.User)
-                .OrderByDescending(x => x.CreatedDate)
-                .ApplyFilter(filter).ToListAsync();
-        }
-
-        public async Task<int> TotalCommentCountAsync(Guid id, CommentFilter filter)
-        {
-            return await Context.Set<Comment>()
-                .Where(x => x.PostId == id).
-                ApplyFilter(filter, true).CountAsync();
-        }
-
-        public async Task<Comment> GetCommentAsync(Guid commentId)
-        {
-            return await Context.Set<Comment>().FindAsync(commentId);
         }
 
         public async Task<Post?> LoadComment(Post post, Guid commentId)

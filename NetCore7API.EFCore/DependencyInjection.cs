@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NetCore7API.Domain.Providers;
 using NetCore7API.Domain.Repositories;
 using NetCore7API.EFCore.Context;
+using NetCore7API.EFCore.Providers;
 using NetCore7API.EFCore.Repositories;
 using System;
 using System.Collections.Generic;
@@ -23,6 +25,8 @@ namespace NetCore7API.EFCore
             services.AddScoped<IPostRepository, PostRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ITokenRepository, TokenRepository>();
+            services.AddScoped<IUserProvider, UserProvider>();
+            services.AddScoped<IPostProvider, PostProvider>();
 
             return services;
         }

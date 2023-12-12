@@ -18,7 +18,7 @@ namespace NetCore7API.Domain.DTOs.Post
 
         public string? ImageURL { get; internal set; }
 
-        public bool IsLikedByCurrentUser { get; internal set; }
+        public bool IsLiked { get; internal set; }
 
         public int TotalLikes { get; internal set; }
 

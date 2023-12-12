@@ -25,29 +25,5 @@ namespace NetCore7API.EFCore.Repositories
         {
             return await Context.Set<User>().FirstOrDefaultAsync(x => x.UserName == userName);
         }
-
-        public async Task<bool> IsUserNameInUse(string userName, Guid except)
-        {
-            return await Context.Set<User>()
-                .Where(x => x.Id != except)
-                .AnyAsync(x => x.UserName == userName);
-        }
-
-        public async Task<bool> IsEmailInUse(string email, Guid except)
-        {
-            return await Context.Set<User>()
-                .Where(x => x.Id != except)
-                .AnyAsync(x => x.Email == email);
-        }
-
-        public async Task<bool> IsUserNameInUse(string userName)
-        {
-            return await this.IsUserNameInUse(userName, Guid.Empty);
-        }
-
-        public async Task<bool> IsEmailInUse(string email)
-        {
-            return await this.IsEmailInUse(email, Guid.Empty);
-        }
     }
 }

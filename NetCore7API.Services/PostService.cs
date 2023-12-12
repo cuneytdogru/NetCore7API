@@ -34,35 +34,9 @@ namespace NetCore7API.Services
             _mapper = mapper;
         }
 
-        public async Task<PagedResponse<PostDto, PostFilter>> ListAsync(PostFilter filter)
-        {
-            var response = await _postRepository.ListBlogFeedAsync(filter);
-
-            var totalCount = await _postRepository.TotalCountAsync(filter);
-
-            foreach (var item in response)
-            {
-                item.IsLikedByCurrentUser = item.Likes.Any(x => x.UserId == _tokenService.UserId);
-            }
-
-            var mappedResponse = _mapper.Map<IEnumerable<PostDto>>(response);
-
-            return new PagedResponse<PostDto, PostFilter>(mappedResponse, filter, totalCount);
-        }
-
-        public async Task<PostDto> GetAsync(Guid id)
-        {
-            var post = await _postRepository.GetPostDetailAsync(id);
-
-            if (post is null)
-                throw new UserException("Post not found.");
-
-            return _mapper.Map<PostDto>(post);
-        }
-
         public async Task<PostDto> CreateAsync(CreatePostDto dto)
         {
-            var user = await _userRepository.FindAsync(_tokenService.UserId);
+            var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
             if (user is null)
                 throw new UserException("Failed to find User!");
@@ -97,7 +71,10 @@ namespace NetCore7API.Services
 
         public async Task<PostDto> LikeAsync(Guid id, LikePostDto dto)
         {
-            var user = await _userRepository.FindAsync(_tokenService.UserId);
+            if (_tokenService.UserId is null)
+                throw new Exception("User is not authorized!");
+
+            var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
             if (user is null)
                 throw new UserException("Failed to find User!");
@@ -142,30 +119,12 @@ namespace NetCore7API.Services
             return _mapper.Map<PostDto>(post);
         }
 
-        public async Task<PagedResponse<CommentDto, CommentFilter>> ListCommentsAsync(Guid id, CommentFilter filter)
-        {
-            var response = await _postRepository.ListCommentsAsync(id, filter);
-
-            var totalCount = await _postRepository.TotalCommentCountAsync(id, filter);
-
-            var mappedResponse = _mapper.Map<IEnumerable<CommentDto>>(response);
-
-            return new PagedResponse<CommentDto, CommentFilter>(mappedResponse, filter, totalCount);
-        }
-
-        public async Task<CommentDto> GetCommentAsync(Guid id, Guid commentId)
-        {
-            var comment = await _postRepository.GetCommentAsync(commentId);
-
-            if (comment is null || comment.PostId != id)
-                throw new UserException("Comment not found.");
-
-            return _mapper.Map<CommentDto>(comment);
-        }
-
         public async Task<CommentDto> AddCommentAsync(Guid id, CreateCommentDto dto)
         {
-            var user = await _userRepository.FindAsync(_tokenService.UserId);
+            if (_tokenService.UserId is null)
+                throw new Exception("User is not authorized!");
+
+            var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
             if (user is null)
                 throw new UserException("Failed to find User!");
@@ -186,7 +145,10 @@ namespace NetCore7API.Services
 
         public async Task<CommentDto> UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentDto dto)
         {
-            var user = await _userRepository.FindAsync(_tokenService.UserId);
+            if (_tokenService.UserId is null)
+                throw new Exception("User is not authorized!");
+
+            var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
             if (user is null)
                 throw new UserException("Failed to find User!");
@@ -209,7 +171,10 @@ namespace NetCore7API.Services
 
         public async Task<CommentDto> RemoveCommentAsync(Guid id, Guid commentId)
         {
-            var user = await _userRepository.FindAsync(_tokenService.UserId);
+            if (_tokenService.UserId is null)
+                throw new Exception("User is not authorized!");
+
+            var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
             if (user is null)
                 throw new UserException("Failed to find User!");
