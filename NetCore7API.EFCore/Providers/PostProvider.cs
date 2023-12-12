@@ -44,6 +44,7 @@ namespace NetCore7API.EFCore.Providers
         public async Task<PagedResponse<PostDto, PostFilter>> ListBlogFeedAsync(PostFilter filter)
         {
             var posts = await Context.Set<Post>()
+                .OrderByDescending(x => x.CreatedDate)
                 .ApplyFilter(filter)
                 .Include(x => x.User)
                 .Include(x => x.Comments.OrderByDescending(x => x.CreatedDate).Take(1))
