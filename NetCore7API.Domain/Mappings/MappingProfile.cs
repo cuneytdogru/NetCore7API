@@ -28,6 +28,9 @@ namespace NetCore7API.Domain.Mappings
 
             CreateMap<User, PublicUserDto>()
                 .ReverseMap().IgnoreAllPropertiesWithAnInaccessibleSetter();
+
+            CreateMap<User, ProfileDto>()
+                .ReverseMap().IgnoreAllPropertiesWithAnInaccessibleSetter();
         }
     }
 }

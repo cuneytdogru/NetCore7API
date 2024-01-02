@@ -22,8 +22,8 @@ namespace NetCore7API.EFCore.Providers
 {
     public class UserProvider : Provider, IUserProvider
     {
-        private readonly ITokenService _tokenService;
         private readonly IMapper _mapper;
+        private readonly ITokenService _tokenService;
 
         public UserProvider(BlogContext context, ITokenService tokenService, IMapper mapper) : base(context)
         {
@@ -61,6 +61,60 @@ namespace NetCore7API.EFCore.Providers
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             return _mapper.Map<UserDto?>(user);
+        }
+
+        public async Task<ProfileDto?> GetProfileByUserNameAsync(string userName)
+        {
+            var user = await Context.Set<User>()
+                .FirstOrDefaultAsync(x => x.UserName == userName);
+
+            var profile = _mapper.Map<ProfileDto?>(user);
+
+            if (user is not null)
+                profile.TotalPosts = await Context.Set<Post>()
+                    .Where(x => x.UserId == user.Id)
+                    .CountAsync();
+
+            return profile;
+        }
+
+        public async Task<PagedResponse<PostDto, PostFilter>> GetProfilePostsAsync(PostFilter filter)
+        {
+            var posts = await Context.Set<Post>()
+                .OrderByDescending(x => x.CreatedDate)
+                .ApplyFilter(filter)
+                .Include(x => x.User)
+                .Include(x => x.Likes.Where(x => x.UserId == _tokenService.UserId).Take(1))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var totalCount = await Context.Set<Post>()
+                .ApplyFilter(filter, true)
+                .CountAsync();
+
+            return new PagedResponse<PostDto, PostFilter>(
+                _mapper.Map<IEnumerable<PostDto>>(posts),
+                filter,
+                totalCount);
+        }
+
+        public async Task<PagedResponse<CommentDto, CommentFilter>> GetProfileCommentsAsync(CommentFilter filter)
+        {
+            var comments = await Context.Set<Comment>()
+                .OrderByDescending(x => x.CreatedDate)
+                .ApplyFilter(filter)
+                .Include(x => x.User)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var totalCount = await Context.Set<Comment>()
+                .ApplyFilter(filter, true)
+                .CountAsync();
+
+            return new PagedResponse<CommentDto, CommentFilter>(
+                _mapper.Map<IEnumerable<CommentDto>>(comments),
+                filter,
+                totalCount);
         }
     }
 }

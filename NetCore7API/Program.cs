@@ -37,6 +37,12 @@ builder.Services.AddAuthentication(options =>
 
 // Add services to the container.
 
+builder.Services.AddRouting(options =>
+{
+    options.LowercaseUrls = true;
+    options.LowercaseQueryStrings = true;
+});
+
 builder.Services
     .AddHttpContextAccessor()
     .AddScoped<ITokenService, TokenService>()
