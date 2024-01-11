@@ -37,6 +37,12 @@ builder.Services.AddAuthentication(options =>
 
 // Add services to the container.
 
+builder.Services.AddRouting(options =>
+{
+    options.LowercaseUrls = true;
+    options.LowercaseQueryStrings = true;
+});
+
 builder.Services
     .AddHttpContextAccessor()
     .AddScoped<ITokenService, TokenService>()
@@ -52,7 +58,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "AngularLocalhost", policy =>
     {
-        policy.WithOrigins("http://localhost:4200");
+        policy.WithOrigins("http://localhost:4201");
         policy.AllowCredentials();
         policy.AllowAnyMethod();
         policy.AllowAnyHeader();

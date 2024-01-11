@@ -13,21 +13,27 @@ namespace NetCore7API.Controllers
     public class UserController : BaseApiController
     {
         private readonly IUserService _userService;
-
         private readonly IUserProvider _userProvider;
+        private readonly ITokenService _tokenService;
 
-        public UserController(IUserService userService, IUserProvider userProvider)
+        public UserController(IUserService userService, IUserProvider userProvider, ITokenService tokenService)
         {
             _userService = userService;
             _userProvider = userProvider;
+            _tokenService = tokenService;
         }
 
-        [HttpGet("{id}")]
+        /// <summary>
+        /// Gets logged in user.
+        /// </summary>
+        /// <returns>User</returns>
+        [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<UserDto>> GetAsync(Guid id)
+        public virtual async Task<ActionResult<UserDto>> GetAsync()
         {
-            var resource = await _userProvider.GetUserAsync(id);
+            var resource = await _userProvider.GetUserAsync(_tokenService.UserId.GetValueOrDefault());
+
             if (resource == null)
                 return NotFound();
 
@@ -51,15 +57,15 @@ namespace NetCore7API.Controllers
             return CreatedAtAction("Get", new { id = resource.Id }, resource);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<UserDto>> PutAsync(Guid id, [FromBody] UpdateUserDto dto)
+        public virtual async Task<ActionResult<UserDto>> PutAsync([FromBody] UpdateUserDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _userService.UpdateAsync(id, dto);
+            var resource = await _userService.UpdateAsync(_tokenService.UserId.GetValueOrDefault(), dto);
 
             if (resource == null)
                 return NotFound();
@@ -67,15 +73,15 @@ namespace NetCore7API.Controllers
             return Ok(resource);
         }
 
-        [HttpPut("{id}/change-password")]
+        [HttpPut("change-password")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<UserDto>> ChangePasswordAsync(Guid id, [FromBody] ChangePasswordDto dto)
+        public virtual async Task<ActionResult<UserDto>> ChangePasswordAsync([FromBody] ChangePasswordDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _userService.ChangePasswordAsync(id, dto);
+            var resource = await _userService.ChangePasswordAsync(_tokenService.UserId.GetValueOrDefault(), dto);
 
             if (resource == null)
                 return NotFound();
@@ -83,7 +89,7 @@ namespace NetCore7API.Controllers
             return Ok(resource);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<UserDto>> DeleteAsync(Guid id)
@@ -91,7 +97,7 @@ namespace NetCore7API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            await _userService.DeleteAsync(id);
+            await _userService.DeleteAsync(_tokenService.UserId.GetValueOrDefault());
 
             return NoContent();
         }

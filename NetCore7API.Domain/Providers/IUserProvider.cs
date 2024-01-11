@@ -26,5 +26,11 @@ namespace NetCore7API.Domain.Providers
         Task<bool> IsEmailInUse(string email, Guid except);
 
         Task<UserDto?> GetUserAsync(Guid id);
+
+        Task<ProfileDto?> GetProfileByUserNameAsync(string userName);
+
+        Task<PagedResponse<PostDto, PostFilter>> GetProfilePostsAsync(PostFilter filter);
+
+        Task<PagedResponse<CommentDto, CommentFilter>> GetProfileCommentsAsync(CommentFilter filter);
     }
 }

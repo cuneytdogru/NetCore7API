@@ -17,7 +17,6 @@ namespace NetCore7API.Domain.Mappings
         public MappingProfiles()
         {
             CreateMap<Post, PostDto>()
-                .ForMember(d => d.IsLiked, opts => opts.MapFrom(s => s.Likes.Any()))
                 .ReverseMap().IgnoreAllPropertiesWithAnInaccessibleSetter();
 
             CreateMap<Comment, CommentDto>()
@@ -27,6 +26,9 @@ namespace NetCore7API.Domain.Mappings
                 .ReverseMap().IgnoreAllPropertiesWithAnInaccessibleSetter();
 
             CreateMap<User, PublicUserDto>()
+                .ReverseMap().IgnoreAllPropertiesWithAnInaccessibleSetter();
+
+            CreateMap<User, ProfileDto>()
                 .ReverseMap().IgnoreAllPropertiesWithAnInaccessibleSetter();
         }
     }

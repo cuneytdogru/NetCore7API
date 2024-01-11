@@ -15,7 +15,7 @@ namespace NetCore7API.Domain.Models
 
         public ICollection<Comment> Comments { get; set; }
         public ICollection<Like> Likes { get; set; }
-        public virtual User? User { get; set; } = null;
+        public virtual User User { get; set; }
 
         private Post()
         {

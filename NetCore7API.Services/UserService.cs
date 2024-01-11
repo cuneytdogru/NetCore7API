@@ -35,9 +35,6 @@ namespace NetCore7API.Services
 
         public async Task<UserDto> GetAsync(Guid id)
         {
-            if (id != _tokenService.UserId)
-                throw new UserException("User not found.");
-
             var user = await _userRepository.GetAsync(id);
 
             if (user is null)
@@ -67,9 +64,6 @@ namespace NetCore7API.Services
 
         public async Task<UserDto> UpdateAsync(Guid id, UpdateUserDto dto)
         {
-            if (id != _tokenService.UserId)
-                throw new UserException("User not found.");
-
             var isUserNameExists = await _userProvider.IsUserNameInUse(dto.UserName, id);
             if (isUserNameExists)
                 throw new UserException("Username already in use! Please type another username.");
@@ -90,9 +84,6 @@ namespace NetCore7API.Services
 
         public async Task<UserDto> ChangePasswordAsync(Guid id, ChangePasswordDto dto)
         {
-            if (id != _tokenService.UserId)
-                throw new UserException("User not found.");
-
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)
@@ -109,9 +100,6 @@ namespace NetCore7API.Services
 
         public async Task<UserDto> DeleteAsync(Guid id)
         {
-            if (id != _tokenService.UserId)
-                throw new UserException("User not found.");
-
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)

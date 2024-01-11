@@ -46,11 +46,45 @@ namespace NetCore7API.EFCore.Providers
             var posts = await Context.Set<Post>()
                 .OrderByDescending(x => x.CreatedDate)
                 .ApplyFilter(filter)
-                .Include(x => x.User)
-                .Include(x => x.Comments.OrderByDescending(x => x.CreatedDate).Take(1))
-                    .ThenInclude(c => c.User)
-                .Include(x => x.Likes.Where(x => x.UserId == _tokenService.UserId).Take(1))
                 .AsNoTracking()
+                .Select(post => new PostDto()
+                {
+                    Id = post.Id,
+                    CreatedBy = post.CreatedBy,
+                    CreatedDate = post.CreatedDate,
+                    ImageURL = post.ImageURL,
+                    Text = post.Text,
+                    TotalLikes = post.TotalLikes,
+                    TotalComments = post.TotalComments,
+                    IsLiked = post.Likes.Any(x => x.UserId == _tokenService.UserId),
+                    UserId = post.UserId,
+                    User = new Domain.DTOs.User.PublicUserDto()
+                    {
+                        Id = post.UserId,
+                        FullName = post.User.FullName,
+                        UserName = post.User.UserName,
+                    },
+                    Comments = post.Comments
+                    .OrderByDescending(x => x.CreatedDate)
+                    .Take(1)
+                    .Select(comment => new CommentDto()
+                    {
+                        Id = comment.Id,
+                        Text = comment.Text,
+                        PostId = comment.PostId,
+                        CreatedDate = comment.CreatedDate,
+                        CreatedBy = comment.CreatedBy,
+                        ModifiedBy = comment.ModifiedBy,
+                        ModifiedDate = comment.ModifiedDate,
+                        UserId = comment.UserId,
+                        User = new Domain.DTOs.User.PublicUserDto()
+                        {
+                            Id = comment.UserId,
+                            FullName = comment.User.FullName,
+                            UserName = comment.User.UserName,
+                        }
+                    }),
+                })
                 .ToListAsync();
 
             var totalCount = await Context.Set<Post>()
@@ -58,7 +92,7 @@ namespace NetCore7API.EFCore.Providers
                 .CountAsync();
 
             return new PagedResponse<PostDto, PostFilter>(
-                _mapper.Map<IEnumerable<PostDto>>(posts),
+                posts,
                 filter,
                 totalCount);
         }
@@ -66,13 +100,47 @@ namespace NetCore7API.EFCore.Providers
         public async Task<PostDto?> GetPostDetailAsync(Guid id)
         {
             var post = await Context.Set<Post>()
-                .Where(x => x.Id == id)
-                .Include(x => x.User)
-                .Include(x => x.Comments.OrderByDescending(x => x.CreatedDate).Take(5))
-                    .ThenInclude(c => c.User)
-                .Include(x => x.Likes.Where(x => x.UserId == _tokenService.UserId).Take(1))
+                .OrderByDescending(x => x.CreatedDate)
                 .AsNoTracking()
-                .FirstOrDefaultAsync();
+                .Select(post => new PostDto()
+                {
+                    Id = post.Id,
+                    CreatedBy = post.CreatedBy,
+                    CreatedDate = post.CreatedDate,
+                    ImageURL = post.ImageURL,
+                    Text = post.Text,
+                    TotalLikes = post.TotalLikes,
+                    TotalComments = post.TotalComments,
+                    IsLiked = post.Likes.Any(x => x.UserId == _tokenService.UserId),
+                    UserId = post.UserId,
+                    User = new Domain.DTOs.User.PublicUserDto()
+                    {
+                        Id = post.UserId,
+                        FullName = post.User.FullName,
+                        UserName = post.User.UserName,
+                    },
+                    Comments = post.Comments
+                    .OrderByDescending(x => x.CreatedDate)
+                    .Take(5)
+                    .Select(comment => new CommentDto()
+                    {
+                        Id = comment.Id,
+                        Text = comment.Text,
+                        PostId = comment.PostId,
+                        CreatedDate = comment.CreatedDate,
+                        CreatedBy = comment.CreatedBy,
+                        ModifiedBy = comment.ModifiedBy,
+                        ModifiedDate = comment.ModifiedDate,
+                        UserId = comment.UserId,
+                        User = new Domain.DTOs.User.PublicUserDto()
+                        {
+                            Id = comment.UserId,
+                            FullName = comment.User.FullName,
+                            UserName = comment.User.UserName,
+                        }
+                    }),
+                })
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             return _mapper.Map<PostDto>(post);
         }

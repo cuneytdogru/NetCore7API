@@ -22,8 +22,8 @@ namespace NetCore7API.EFCore.Providers
 {
     public class UserProvider : Provider, IUserProvider
     {
-        private readonly ITokenService _tokenService;
         private readonly IMapper _mapper;
+        private readonly ITokenService _tokenService;
 
         public UserProvider(BlogContext context, ITokenService tokenService, IMapper mapper) : base(context)
         {
@@ -61,6 +61,98 @@ namespace NetCore7API.EFCore.Providers
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             return _mapper.Map<UserDto?>(user);
+        }
+
+        public async Task<ProfileDto?> GetProfileByUserNameAsync(string userName)
+        {
+            var user = await Context.Set<User>()
+                .FirstOrDefaultAsync(x => x.UserName == userName);
+
+            var profile = _mapper.Map<ProfileDto?>(user);
+
+            if (user is not null)
+                profile.TotalPosts = await Context.Set<Post>()
+                    .Where(x => x.UserId == user.Id)
+                    .CountAsync();
+
+            return profile;
+        }
+
+        public async Task<PagedResponse<PostDto, PostFilter>> GetProfilePostsAsync(PostFilter filter)
+        {
+            var posts = await Context.Set<Post>()
+                .OrderByDescending(x => x.CreatedDate)
+                .ApplyFilter(filter)
+                .AsNoTracking()
+                .Select(post => new PostDto()
+                {
+                    Id = post.Id,
+                    CreatedBy = post.CreatedBy,
+                    CreatedDate = post.CreatedDate,
+                    ImageURL = post.ImageURL,
+                    Text = post.Text,
+                    TotalLikes = post.TotalLikes,
+                    TotalComments = post.TotalComments,
+                    IsLiked = post.Likes.Any(x => x.UserId == _tokenService.UserId),
+                    UserId = post.UserId,
+                    User = new Domain.DTOs.User.PublicUserDto()
+                    {
+                        Id = post.UserId,
+                        FullName = post.User.FullName,
+                        UserName = post.User.UserName,
+                    },
+                })
+                .ToListAsync();
+
+            var totalCount = await Context.Set<Post>()
+                .ApplyFilter(filter, true)
+                .CountAsync();
+
+            return new PagedResponse<PostDto, PostFilter>(
+                posts,
+                filter,
+                totalCount);
+        }
+
+        public async Task<PagedResponse<CommentDto, CommentFilter>> GetProfileCommentsAsync(CommentFilter filter)
+        {
+            var comments = await Context.Set<Comment>()
+                .OrderByDescending(x => x.CreatedDate)
+                .ApplyFilter(filter)
+                .AsNoTracking()
+                .Select(x => new CommentDto()
+                {
+                    CreatedBy = x.CreatedBy,
+                    CreatedDate = x.CreatedDate,
+                    Id = x.Id,
+                    ModifiedBy = x.ModifiedBy,
+                    ModifiedDate = x.ModifiedDate,
+                    PostId = x.PostId,
+                    ResponseToUser = new PublicUserDto()
+                    {
+                        FullName = x.Post.User.FullName,
+                        Id = x.Post.User.Id,
+                        UserName = x.Post.User.UserName,
+                    },
+                    Text = x.Text,
+                    User = new PublicUserDto()
+                    {
+                        FullName = x.User.FullName,
+                        Id = x.User.Id,
+                        UserName = x.User.UserName,
+                    },
+                    UserId = x.UserId
+                })
+                .ToListAsync();
+
+            var totalCount = await Context.Set<Comment>()
+                .ApplyFilter(filter, true)
+                .CountAsync();
+
+            return new PagedResponse<CommentDto, CommentFilter>(
+                comments,
+                filter,
+                totalCount);
         }
     }
 }
