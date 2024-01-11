@@ -1,4 +1,5 @@
 ﻿using NetCore7API.Domain.DTOs.Interfaces;
+using NetCore7API.Domain.DTOs.Post;
 using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Models.Interfaces;
 using System;
@@ -12,12 +13,14 @@ namespace NetCore7API.Domain.DTOs.Comment
 {
     public class CommentDto : BaseDto
     {
-        public string Text { get; internal set; }
+        public string Text { get; set; }
 
-        public Guid PostId { get; internal set; }
+        public Guid PostId { get; set; }
 
-        public Guid UserId { get; internal set; }
+        public Guid UserId { get; set; }
 
-        public PublicUserDto User { get; internal set; }
+        public PublicUserDto User { get; set; }
+
+        public PublicUserDto ResponseToUser { get; set; }
     }
 }

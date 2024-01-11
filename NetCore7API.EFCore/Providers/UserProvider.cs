@@ -83,9 +83,25 @@ namespace NetCore7API.EFCore.Providers
             var posts = await Context.Set<Post>()
                 .OrderByDescending(x => x.CreatedDate)
                 .ApplyFilter(filter)
-                .Include(x => x.User)
-                .Include(x => x.Likes.Where(x => x.UserId == _tokenService.UserId).Take(1))
                 .AsNoTracking()
+                .Select(post => new PostDto()
+                {
+                    Id = post.Id,
+                    CreatedBy = post.CreatedBy,
+                    CreatedDate = post.CreatedDate,
+                    ImageURL = post.ImageURL,
+                    Text = post.Text,
+                    TotalLikes = post.TotalLikes,
+                    TotalComments = post.TotalComments,
+                    IsLiked = post.Likes.Any(x => x.UserId == _tokenService.UserId),
+                    UserId = post.UserId,
+                    User = new Domain.DTOs.User.PublicUserDto()
+                    {
+                        Id = post.UserId,
+                        FullName = post.User.FullName,
+                        UserName = post.User.UserName,
+                    },
+                })
                 .ToListAsync();
 
             var totalCount = await Context.Set<Post>()
@@ -93,7 +109,7 @@ namespace NetCore7API.EFCore.Providers
                 .CountAsync();
 
             return new PagedResponse<PostDto, PostFilter>(
-                _mapper.Map<IEnumerable<PostDto>>(posts),
+                posts,
                 filter,
                 totalCount);
         }
@@ -103,8 +119,30 @@ namespace NetCore7API.EFCore.Providers
             var comments = await Context.Set<Comment>()
                 .OrderByDescending(x => x.CreatedDate)
                 .ApplyFilter(filter)
-                .Include(x => x.User)
                 .AsNoTracking()
+                .Select(x => new CommentDto()
+                {
+                    CreatedBy = x.CreatedBy,
+                    CreatedDate = x.CreatedDate,
+                    Id = x.Id,
+                    ModifiedBy = x.ModifiedBy,
+                    ModifiedDate = x.ModifiedDate,
+                    PostId = x.PostId,
+                    ResponseToUser = new PublicUserDto()
+                    {
+                        FullName = x.Post.User.FullName,
+                        Id = x.Post.User.Id,
+                        UserName = x.Post.User.UserName,
+                    },
+                    Text = x.Text,
+                    User = new PublicUserDto()
+                    {
+                        FullName = x.User.FullName,
+                        Id = x.User.Id,
+                        UserName = x.User.UserName,
+                    },
+                    UserId = x.UserId
+                })
                 .ToListAsync();
 
             var totalCount = await Context.Set<Comment>()
@@ -112,7 +150,7 @@ namespace NetCore7API.EFCore.Providers
                 .CountAsync();
 
             return new PagedResponse<CommentDto, CommentFilter>(
-                _mapper.Map<IEnumerable<CommentDto>>(comments),
+                comments,
                 filter,
                 totalCount);
         }

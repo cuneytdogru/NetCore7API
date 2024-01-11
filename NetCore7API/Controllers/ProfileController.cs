@@ -37,7 +37,7 @@ namespace NetCore7API.Controllers
         }
 
         /// <summary>
-        /// Gets profile of the user.
+        /// Gets posts of the user.
         /// </summary>
         /// <returns>User</returns>
         [HttpGet("posts")]
@@ -46,6 +46,23 @@ namespace NetCore7API.Controllers
         public virtual async Task<ActionResult<ProfileDto>> GetProfilePostsAsync([FromQuery] PostFilter filter)
         {
             var resource = await _userProvider.GetProfilePostsAsync(filter);
+
+            if (resource == null)
+                return NotFound();
+
+            return Ok(resource);
+        }
+
+        /// <summary>
+        /// Gets comments of the user.
+        /// </summary>
+        /// <returns>User</returns>
+        [HttpGet("comments")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public virtual async Task<ActionResult<ProfileDto>> GetProfileCommentsAsync([FromQuery] CommentFilter filter)
+        {
+            var resource = await _userProvider.GetProfileCommentsAsync(filter);
 
             if (resource == null)
                 return NotFound();

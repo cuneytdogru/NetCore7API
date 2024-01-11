@@ -14,20 +14,20 @@ namespace NetCore7API.Domain.DTOs.Post
 {
     public class PostDto : BaseDto
     {
-        public string Text { get; internal set; }
+        public string Text { get; set; }
 
-        public string? ImageURL { get; internal set; }
+        public string? ImageURL { get; set; }
 
-        public bool IsLiked { get; internal set; }
+        public bool IsLiked { get; set; }
 
-        public int TotalLikes { get; internal set; }
+        public int TotalLikes { get; set; }
 
-        public int TotalComments { get; internal set; }
+        public int TotalComments { get; set; }
 
-        public Guid UserId { get; internal set; }
+        public Guid UserId { get; set; }
 
-        public IEnumerable<CommentDto> Comments { get; internal set; } = Array.Empty<CommentDto>();
+        public IEnumerable<CommentDto> Comments { get; set; } = Array.Empty<CommentDto>();
 
-        public PublicUserDto User { get; internal set; }
+        public PublicUserDto User { get; set; }
     }
 }
