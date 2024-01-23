@@ -4,14 +4,12 @@ namespace NetCore7API.Domain.Services
 {
     public interface IUserService
     {
-        Task<UserDto> GetAsync(Guid id);
+        Task<Guid> RegisterAsync(RegisterUserDto dto);
 
-        Task<UserDto> RegisterAsync(RegisterUserDto dto);
+        Task UpdateAsync(Guid id, UpdateUserDto dto);
 
-        Task<UserDto> UpdateAsync(Guid id, UpdateUserDto dto);
+        Task ChangePasswordAsync(Guid id, ChangePasswordDto dto);
 
-        Task<UserDto> ChangePasswordAsync(Guid id, ChangePasswordDto dto);
-
-        Task<UserDto> DeleteAsync(Guid id);
+        Task DeleteAsync(Guid id);
     }
 }

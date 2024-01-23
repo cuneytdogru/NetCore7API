@@ -28,9 +28,9 @@ namespace NetCore7API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<LoginResponseDto>> LoginAsync(LoginRequestDto dto)
         {
-            var response = await _authService.Login(dto);
+            var loginResponse = await _authService.Login(dto);
 
-            return Ok(response);
+            return Ok(loginResponse);
         }
 
         /// <summary>
@@ -40,12 +40,12 @@ namespace NetCore7API.Controllers
         /// <returns></returns>
         [HttpPost("logout")]
         [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<ActionResult> LogoutAsync([FromHeader(Name = "Authorization")] string token)
         {
             await _authService.Logout(token);
 
-            return Ok();
+            return NoContent();
         }
     }
 }

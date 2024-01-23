@@ -32,67 +32,58 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<UserDto>> GetAsync()
         {
-            var resource = await _userProvider.GetUserAsync(_tokenService.UserId.GetValueOrDefault());
+            var user = await _userProvider.GetUserAsync(_tokenService.UserId.GetValueOrDefault());
 
-            if (resource == null)
+            if (user is null)
                 return NotFound();
 
-            return Ok(resource);
+            return Ok(user);
         }
 
         [HttpPost]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<UserDto>> UserAsync([FromBody] RegisterUserDto dto)
+        public virtual async Task<ActionResult> UserAsync([FromBody] RegisterUserDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _userService.RegisterAsync(dto);
+            var userId = await _userService.RegisterAsync(dto);
 
-            if (resource == null)
-                return NotFound();
-
-            return CreatedAtAction("Get", new { id = resource.Id }, resource);
+            return CreatedAtAction("Get", new { id = userId });
         }
 
         [HttpPut]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<UserDto>> PutAsync([FromBody] UpdateUserDto dto)
+        public virtual async Task<ActionResult> PutAsync([FromBody] UpdateUserDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _userService.UpdateAsync(_tokenService.UserId.GetValueOrDefault(), dto);
+            await _userService.UpdateAsync(_tokenService.UserId.GetValueOrDefault(), dto);
 
-            if (resource == null)
-                return NotFound();
-
-            return Ok(resource);
+            return NoContent();
         }
 
         [HttpPut("change-password")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<UserDto>> ChangePasswordAsync([FromBody] ChangePasswordDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _userService.ChangePasswordAsync(_tokenService.UserId.GetValueOrDefault(), dto);
+            await _userService.ChangePasswordAsync(_tokenService.UserId.GetValueOrDefault(), dto);
 
-            if (resource == null)
-                return NotFound();
-
-            return Ok(resource);
+            return NoContent();
         }
 
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<UserDto>> DeleteAsync(Guid id)
+        public virtual async Task<ActionResult> DeleteAsync(Guid id)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
