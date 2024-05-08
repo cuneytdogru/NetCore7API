@@ -28,72 +28,62 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PagedResponse<PostDto, PostFilter>>> ListAsync([FromQuery] PostFilter filter)
         {
-            var resource = await _postProvider.ListBlogFeedAsync(filter);
+            var blogFeed = await _postProvider.ListBlogFeedAsync(filter);
 
-            if (resource == null)
-                return NotFound();
-
-            return Ok(resource);
+            return Ok(blogFeed);
         }
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public virtual async Task<ActionResult<PostDto>> GetAsync(Guid id)
         {
-            var resource = await _postProvider.GetPostDetailAsync(id);
-            if (resource == null)
+            var post = await _postProvider.GetPostDetailAsync(id);
+
+            if (post is null)
                 return NotFound();
 
-            return Ok(resource);
+            return Ok(post);
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<PostDto>> PostAsync([FromBody] CreatePostDto dto)
+        public virtual async Task<ActionResult> PostAsync([FromBody] CreatePostDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _postService.CreateAsync(dto);
+            var postId = await _postService.CreateAsync(dto);
 
-            if (resource == null)
-                return NotFound();
-
-            return CreatedAtAction("Get", new { id = resource.Id }, resource);
+            return CreatedAtAction("Get", new { id = postId.ToString() }, postId);
         }
 
         [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<PostDto>> PutAsync(Guid id, [FromBody] UpdatePostDto dto)
+        public virtual async Task<ActionResult> PutAsync(Guid id, [FromBody] UpdatePostDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _postService.UpdateAsync(id, dto);
+            await _postService.UpdateAsync(id, dto);
 
-            if (resource == null)
-                return NotFound();
-
-            return Ok(resource);
+            return NoContent();
         }
 
         [HttpPut("{id}/like")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<PostDto>> LikeAsync(Guid id, [FromBody] LikePostDto dto)
+        public virtual async Task<ActionResult> LikeAsync(Guid id, [FromBody] LikePostDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _postService.LikeAsync(id, dto);
+            await _postService.LikeAsync(id, dto);
 
-            if (resource == null)
-                return NotFound();
-
-            return Ok(resource);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
@@ -114,62 +104,55 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PagedResponse<CommentDto, CommentFilter>>> ListAsync(Guid id, [FromQuery] CommentFilter filter)
         {
-            var resource = await _postProvider.ListCommentsAsync(id, filter);
+            var comments = await _postProvider.ListCommentsAsync(id, filter);
 
-            if (resource == null)
-                return NotFound();
-
-            return Ok(resource);
+            return Ok(comments);
         }
 
         [HttpGet("{id}/comments/{commentId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public virtual async Task<ActionResult<PostDto>> GetCommentAsync(Guid id, Guid commentId)
         {
-            var resource = await _postProvider.GetCommentAsync(id);
-            if (resource == null)
+            var comment = await _postProvider.GetCommentAsync(id);
+
+            if (comment is null)
                 return NotFound();
 
-            return Ok(resource);
+            return Ok(comment);
         }
 
         [HttpPost("{id}/comments")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<PostDto>> PostCommentAsync(Guid id, [FromBody] CreateCommentDto dto)
+        public virtual async Task<ActionResult> PostCommentAsync(Guid id, [FromBody] CreateCommentDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _postService.AddCommentAsync(id, dto);
+            var commentId = await _postService.AddCommentAsync(id, dto);
 
-            if (resource == null)
-                return NotFound();
-
-            return CreatedAtAction(nameof(GetCommentAsync), new { id, commentId = resource.Id }, resource);
+            return CreatedAtAction("{id}/comments/{commentId}", new { id, commentId });
         }
 
         [HttpPut("{id}/comments/{commentId}")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<PostDto>> PutCommentAsync(Guid id, Guid commentId, [FromBody] UpdateCommentDto dto)
+        public virtual async Task<ActionResult> PutCommentAsync(Guid id, Guid commentId, [FromBody] UpdateCommentDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var resource = await _postService.UpdateCommentAsync(id, commentId, dto);
+            await _postService.UpdateCommentAsync(id, commentId, dto);
 
-            if (resource == null)
-                return NotFound();
-
-            return Ok(resource);
+            return NoContent();
         }
 
         [HttpDelete("{id}/comments/{commentId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<PostDto>> DeleteCommentAsync(Guid id, Guid commentId)
+        public virtual async Task<ActionResult> DeleteCommentAsync(Guid id, Guid commentId)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NetCore7API.Domain.DTOs;
+using NetCore7API.Domain.DTOs.Comment;
+using NetCore7API.Domain.DTOs.Post;
 using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Filters;
 using NetCore7API.Domain.Models.Interfaces;
@@ -26,14 +28,15 @@ namespace NetCore7API.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public virtual async Task<ActionResult<ProfileDto>> GetProfileByUserNameAsync([FromQuery] string userName)
         {
-            var resource = await _userProvider.GetProfileByUserNameAsync(userName);
+            var profile = await _userProvider.GetProfileByUserNameAsync(userName);
 
-            if (resource == null)
+            if (profile is null)
                 return NotFound();
 
-            return Ok(resource);
+            return Ok(profile);
         }
 
         /// <summary>
@@ -43,14 +46,11 @@ namespace NetCore7API.Controllers
         [HttpGet("posts")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<ProfileDto>> GetProfilePostsAsync([FromQuery] PostFilter filter)
+        public virtual async Task<ActionResult<PagedResponse<PostDto, PostFilter>>> GetProfilePostsAsync([FromQuery] PostFilter filter)
         {
-            var resource = await _userProvider.GetProfilePostsAsync(filter);
+            var posts = await _userProvider.GetProfilePostsAsync(filter);
 
-            if (resource == null)
-                return NotFound();
-
-            return Ok(resource);
+            return Ok(posts);
         }
 
         /// <summary>
@@ -60,14 +60,11 @@ namespace NetCore7API.Controllers
         [HttpGet("comments")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<ProfileDto>> GetProfileCommentsAsync([FromQuery] CommentFilter filter)
+        public virtual async Task<ActionResult<PagedResponse<CommentDto, CommentFilter>>> GetProfileCommentsAsync([FromQuery] CommentFilter filter)
         {
-            var resource = await _userProvider.GetProfileCommentsAsync(filter);
+            var comments = await _userProvider.GetProfileCommentsAsync(filter);
 
-            if (resource == null)
-                return NotFound();
-
-            return Ok(resource);
+            return Ok(comments);
         }
     }
 }

@@ -1,17 +1,14 @@
 ﻿using AutoMapper;
 using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Exceptions;
-using NetCore7API.Domain.Filters;
 using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Repositories;
-using NetCore7API.Domain.Extensions;
-using NetCore7API.Domain.DTOs;
 using NetCore7API.Domain.Services;
 using NetCore7API.Domain.Providers;
 
 namespace NetCore7API.Services
 {
-    public class UserService : Domain.Services.IUserService
+    public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
         private readonly IUserProvider _userProvider;
@@ -29,21 +26,12 @@ namespace NetCore7API.Services
         {
             _userRepository = userRepository;
             _userProvider = userProvider;
+            _tokenService = tokenService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-        public async Task<UserDto> GetAsync(Guid id)
-        {
-            var user = await _userRepository.GetAsync(id);
-
-            if (user is null)
-                throw new UserException("User not found.");
-
-            return _mapper.Map<UserDto>(user);
-        }
-
-        public async Task<UserDto> RegisterAsync(RegisterUserDto dto)
+        public async Task<Guid> RegisterAsync(RegisterUserDto dto)
         {
             var isUserNameExists = await _userProvider.IsUserNameInUse(dto.UserName);
             if (isUserNameExists)
@@ -59,31 +47,35 @@ namespace NetCore7API.Services
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<UserDto>(user);
+            return user.Id;
         }
 
-        public async Task<UserDto> UpdateAsync(Guid id, UpdateUserDto dto)
+        public async Task UpdateAsync(Guid id, UpdateUserDto dto)
         {
-            var isUserNameExists = await _userProvider.IsUserNameInUse(dto.UserName, id);
-            if (isUserNameExists)
-                throw new UserException("Username already in use! Please type another username.");
+            if (_tokenService.UserId != id)
+                throw new UserException("User not found.");
 
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)
                 throw new UserException("User not found.");
 
+            var isUserNameExists = await _userProvider.IsUserNameInUse(dto.UserName, id);
+            if (isUserNameExists)
+                throw new UserException("Username already in use! Please type another username.");
+
             user.Update(dto);
 
             _userRepository.Update(user);
 
             await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<UserDto>(user);
         }
 
-        public async Task<UserDto> ChangePasswordAsync(Guid id, ChangePasswordDto dto)
+        public async Task ChangePasswordAsync(Guid id, ChangePasswordDto dto)
         {
+            if (_tokenService.UserId != id)
+                throw new UserException("User not found.");
+
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)
@@ -94,12 +86,13 @@ namespace NetCore7API.Services
             _userRepository.Update(user);
 
             await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<UserDto>(user);
         }
 
-        public async Task<UserDto> DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
+            if (_tokenService.UserId != id)
+                throw new UserException("User not found.");
+
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)
@@ -108,8 +101,6 @@ namespace NetCore7API.Services
             _userRepository.SoftDelete(user);
 
             await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<UserDto>(user);
         }
     }
 }

@@ -1,17 +1,14 @@
 ﻿using AutoMapper;
 using NetCore7API.Domain.DTOs.Post;
 using NetCore7API.Domain.Exceptions;
-using NetCore7API.Domain.Filters;
 using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Repositories;
-using NetCore7API.Domain.Extensions;
-using NetCore7API.Domain.DTOs;
 using NetCore7API.Domain.Services;
 using NetCore7API.Domain.DTOs.Comment;
 
 namespace NetCore7API.Services
 {
-    public class PostService : Domain.Services.IPostService
+    public class PostService : IPostService
     {
         private readonly IPostRepository _postRepository;
         private readonly IUserRepository _userRepository;
@@ -34,7 +31,7 @@ namespace NetCore7API.Services
             _mapper = mapper;
         }
 
-        public async Task<PostDto> CreateAsync(CreatePostDto dto)
+        public async Task<Guid> CreateAsync(CreatePostDto dto)
         {
             var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
@@ -47,10 +44,10 @@ namespace NetCore7API.Services
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<PostDto>(post);
+            return post.Id;
         }
 
-        public async Task<PostDto> UpdateAsync(Guid id, UpdatePostDto dto)
+        public async Task UpdateAsync(Guid id, UpdatePostDto dto)
         {
             var post = await _postRepository.FindAsync(id);
 
@@ -65,11 +62,9 @@ namespace NetCore7API.Services
             _postRepository.Update(post);
 
             await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<PostDto>(post);
         }
 
-        public async Task<PostDto> LikeAsync(Guid id, LikePostDto dto)
+        public async Task LikeAsync(Guid id, LikePostDto dto)
         {
             if (_tokenService.UserId is null)
                 throw new Exception("User is not authorized!");
@@ -98,11 +93,9 @@ namespace NetCore7API.Services
             _postRepository.Update(post);
 
             await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<PostDto>(post);
         }
 
-        public async Task<PostDto> DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
             var post = await _postRepository.FindAsync(id);
 
@@ -115,11 +108,9 @@ namespace NetCore7API.Services
             _postRepository.SoftDelete(post);
 
             await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<PostDto>(post);
         }
 
-        public async Task<CommentDto> AddCommentAsync(Guid id, CreateCommentDto dto)
+        public async Task<Guid> AddCommentAsync(Guid id, CreateCommentDto dto)
         {
             if (_tokenService.UserId is null)
                 throw new Exception("User is not authorized!");
@@ -140,10 +131,10 @@ namespace NetCore7API.Services
 
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<CommentDto>(comment);
+            return comment.Id;
         }
 
-        public async Task<CommentDto> UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentDto dto)
+        public async Task UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentDto dto)
         {
             if (_tokenService.UserId is null)
                 throw new Exception("User is not authorized!");
@@ -165,11 +156,9 @@ namespace NetCore7API.Services
             _postRepository.Update(post);
 
             await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<CommentDto>(comment);
         }
 
-        public async Task<CommentDto> RemoveCommentAsync(Guid id, Guid commentId)
+        public async Task RemoveCommentAsync(Guid id, Guid commentId)
         {
             if (_tokenService.UserId is null)
                 throw new Exception("User is not authorized!");
@@ -191,8 +180,6 @@ namespace NetCore7API.Services
             _postRepository.Update(post);
 
             await _unitOfWork.SaveChangesAsync();
-
-            return _mapper.Map<CommentDto>(comment);
         }
     }
 }

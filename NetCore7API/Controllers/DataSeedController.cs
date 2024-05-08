@@ -16,11 +16,12 @@ namespace NetCore7API.Controllers
 
         [HttpPost]
         [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> SeedAsync()
         {
             await RandomDataSeeder.Seed(_context);
 
-            return Ok();
+            return NoContent();
         }
     }
 }
