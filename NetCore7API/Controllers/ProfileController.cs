@@ -33,7 +33,7 @@ namespace NetCore7API.Controllers
         {
             var profile = await _userProvider.GetProfileByUserNameAsync(userName);
 
-            if (profile == null)
+            if (profile is null)
                 return NotFound();
 
             return Ok(profile);

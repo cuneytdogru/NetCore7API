@@ -57,7 +57,7 @@ namespace NetCore7API.Controllers
 
             var postId = await _postService.CreateAsync(dto);
 
-            return CreatedAtAction("Get", new { id = postId });
+            return CreatedAtAction("Get", new { id = postId.ToString() }, postId);
         }
 
         [HttpPut("{id}")]

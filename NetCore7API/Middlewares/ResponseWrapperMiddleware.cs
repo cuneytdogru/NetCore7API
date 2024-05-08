@@ -36,7 +36,8 @@ namespace NetCore7API.Middleware
 
                     if (context.Response.StatusCode >= 200 && context.Response.StatusCode < 300)
                     {
-                        await HandleSuccessRequestAsync(context, originalBodyObject);
+                        if (context.Response.StatusCode != 204)
+                            await HandleSuccessRequestAsync(context, originalBodyObject);
                     }
                     else
                     {
@@ -77,8 +78,6 @@ namespace NetCore7API.Middleware
         private async Task HandleSuccessRequestAsync(HttpContext context, object originalBodyObject)
         {
             var result = await CreateResponseFromBody(context.Response.StatusCode, originalBodyObject);
-
-            context.Response.StatusCode = StatusCodes.Status200OK;
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(result, DefaultJsonOptions.Web));
         }
