@@ -3,6 +3,7 @@ using NetCore7API.Domain.DTOs;
 using NetCore7API.Domain.DTOs.Comment;
 using NetCore7API.Domain.DTOs.Post;
 using NetCore7API.Domain.Filters;
+using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Models.Interfaces;
 using NetCore7API.Domain.Providers;
 using NetCore7API.Domain.Repositories;
@@ -57,7 +58,7 @@ namespace NetCore7API.Controllers
 
             var postId = await _postService.CreateAsync(dto);
 
-            return CreatedAtAction("Get", new { id = postId.ToString() }, postId);
+            return CreatedAtAction("Get", new { id = postId }, postId);
         }
 
         [HttpPut("{id}")]
@@ -115,7 +116,7 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public virtual async Task<ActionResult<PostDto>> GetCommentAsync(Guid id, Guid commentId)
         {
-            var comment = await _postProvider.GetCommentAsync(id);
+            var comment = await _postProvider.GetCommentAsync(commentId);
 
             if (comment is null)
                 return NotFound();
@@ -133,7 +134,10 @@ namespace NetCore7API.Controllers
 
             var commentId = await _postService.AddCommentAsync(id, dto);
 
-            return CreatedAtAction("{id}/comments/{commentId}", new { id, commentId });
+            return CreatedAtAction(
+                "GetComment",
+                new { id, commentId },
+                commentId);
         }
 
         [HttpPut("{id}/comments/{commentId}")]

@@ -14,21 +14,18 @@ namespace NetCore7API.Services
         private readonly IUserRepository _userRepository;
         private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
 
         public PostService(
             IPostRepository postRepository,
             IUserRepository userRepository,
             ITokenService tokenService,
-            IUnitOfWork unitOfWork,
-            IMapper mapper
+            IUnitOfWork unitOfWork
             )
         {
             _postRepository = postRepository;
             _userRepository = userRepository;
             _tokenService = tokenService;
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
         }
 
         public async Task<Guid> CreateAsync(CreatePostDto dto)
@@ -100,7 +97,7 @@ namespace NetCore7API.Services
             var post = await _postRepository.FindAsync(id);
 
             if (post is null)
-                throw new Exception("Post not found.");
+                return;
 
             if (post.UserId != _tokenService.UserId)
                 throw new UserException("You are not authorized to modify this post.");
