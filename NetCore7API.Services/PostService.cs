@@ -148,7 +148,7 @@ namespace NetCore7API.Services
 
             await _postRepository.LoadComment(post, commentId);
 
-            var comment = post.UpdateComment(user.Id, commentId, dto);
+            post.UpdateComment(user.Id, commentId, dto);
 
             _postRepository.Update(post);
 
@@ -172,7 +172,7 @@ namespace NetCore7API.Services
 
             await _postRepository.LoadComment(post, commentId);
 
-            var comment = post.RemoveComment(user.Id, commentId);
+            post.RemoveComment(user.Id, commentId);
 
             _postRepository.Update(post);
 

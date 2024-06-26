@@ -22,13 +22,8 @@ namespace NetCore7API.EFCore.Repositories
 {
     public class PostRepository : Repository<Post>, IPostRepository
     {
-        private readonly ITokenService _tokenService;
-        private readonly IMapper _mapper;
-
-        public PostRepository(BlogContext context, ITokenService tokenService, IMapper mapper) : base(context)
+        public PostRepository(BlogContext context) : base(context)
         {
-            _tokenService = tokenService;
-            _mapper = mapper;
         }
 
         public async Task<Post?> LoadLike(Post post, Guid userId)
