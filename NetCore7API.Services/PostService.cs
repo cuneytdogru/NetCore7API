@@ -52,7 +52,7 @@ namespace NetCore7API.Services
                 throw new UserException("Post not found.");
 
             if (post.UserId != _tokenService.UserId)
-                throw new UserException("You are not authorized to modify this post.");
+                throw new UserUnauthorizedException("You are not authorized to modify this post.");
 
             post.Update(dto);
 
@@ -64,7 +64,7 @@ namespace NetCore7API.Services
         public async Task LikeAsync(Guid id, LikePostDto dto)
         {
             if (_tokenService.UserId is null)
-                throw new Exception("User is not authorized!");
+                throw new UserUnauthorizedException("User is not authorized!");
 
             var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
@@ -100,7 +100,7 @@ namespace NetCore7API.Services
                 return;
 
             if (post.UserId != _tokenService.UserId)
-                throw new UserException("You are not authorized to modify this post.");
+                throw new UserUnauthorizedException("You are not authorized to modify this post.");
 
             _postRepository.SoftDelete(post);
 
@@ -110,7 +110,7 @@ namespace NetCore7API.Services
         public async Task<Guid> AddCommentAsync(Guid id, CreateCommentDto dto)
         {
             if (_tokenService.UserId is null)
-                throw new Exception("User is not authorized!");
+                throw new UserUnauthorizedException("User is not authorized!");
 
             var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
@@ -134,7 +134,7 @@ namespace NetCore7API.Services
         public async Task UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentDto dto)
         {
             if (_tokenService.UserId is null)
-                throw new Exception("User is not authorized!");
+                throw new UserUnauthorizedException("User is not authorized!");
 
             var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
@@ -158,7 +158,7 @@ namespace NetCore7API.Services
         public async Task RemoveCommentAsync(Guid id, Guid commentId)
         {
             if (_tokenService.UserId is null)
-                throw new Exception("User is not authorized!");
+                throw new UserUnauthorizedException("User is not authorized!");
 
             var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 

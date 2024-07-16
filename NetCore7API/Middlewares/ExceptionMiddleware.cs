@@ -39,6 +39,11 @@ namespace NetCore7API.Middlewares
                     errorMessage = exception.Message;
                     break;
 
+                case UserUnauthorizedException:
+                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    errorMessage = exception.Message;
+                    break;
+
                 default:
                     identifier = Guid.NewGuid().ToString();
                     errorMessage = "An internal error occured while processing your request.";
