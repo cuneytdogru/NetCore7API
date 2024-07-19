@@ -35,6 +35,7 @@ namespace NetCore7API.EFCore.Providers
         public async Task<CommentDto?> GetCommentAsync(Guid commentId)
         {
             var comment = await Context.Set<Comment>()
+                .Include(x => x.User)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == commentId);
 

@@ -14,21 +14,18 @@ namespace NetCore7API.Services
         private readonly IUserRepository _userRepository;
         private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
 
         public PostService(
             IPostRepository postRepository,
             IUserRepository userRepository,
             ITokenService tokenService,
-            IUnitOfWork unitOfWork,
-            IMapper mapper
+            IUnitOfWork unitOfWork
             )
         {
             _postRepository = postRepository;
             _userRepository = userRepository;
             _tokenService = tokenService;
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
         }
 
         public async Task<Guid> CreateAsync(CreatePostDto dto)
@@ -55,7 +52,7 @@ namespace NetCore7API.Services
                 throw new UserException("Post not found.");
 
             if (post.UserId != _tokenService.UserId)
-                throw new UserException("You are not authorized to modify this post.");
+                throw new UserUnauthorizedException("You are not authorized to modify this post.");
 
             post.Update(dto);
 
@@ -67,7 +64,7 @@ namespace NetCore7API.Services
         public async Task LikeAsync(Guid id, LikePostDto dto)
         {
             if (_tokenService.UserId is null)
-                throw new Exception("User is not authorized!");
+                throw new UserUnauthorizedException("User is not authorized!");
 
             var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
@@ -100,10 +97,10 @@ namespace NetCore7API.Services
             var post = await _postRepository.FindAsync(id);
 
             if (post is null)
-                throw new Exception("Post not found.");
+                return;
 
             if (post.UserId != _tokenService.UserId)
-                throw new UserException("You are not authorized to modify this post.");
+                throw new UserUnauthorizedException("You are not authorized to modify this post.");
 
             _postRepository.SoftDelete(post);
 
@@ -113,7 +110,7 @@ namespace NetCore7API.Services
         public async Task<Guid> AddCommentAsync(Guid id, CreateCommentDto dto)
         {
             if (_tokenService.UserId is null)
-                throw new Exception("User is not authorized!");
+                throw new UserUnauthorizedException("User is not authorized!");
 
             var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
@@ -137,7 +134,7 @@ namespace NetCore7API.Services
         public async Task UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentDto dto)
         {
             if (_tokenService.UserId is null)
-                throw new Exception("User is not authorized!");
+                throw new UserUnauthorizedException("User is not authorized!");
 
             var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
@@ -151,7 +148,7 @@ namespace NetCore7API.Services
 
             await _postRepository.LoadComment(post, commentId);
 
-            var comment = post.UpdateComment(user.Id, commentId, dto);
+            post.UpdateComment(user.Id, commentId, dto);
 
             _postRepository.Update(post);
 
@@ -161,7 +158,7 @@ namespace NetCore7API.Services
         public async Task RemoveCommentAsync(Guid id, Guid commentId)
         {
             if (_tokenService.UserId is null)
-                throw new Exception("User is not authorized!");
+                throw new UserUnauthorizedException("User is not authorized!");
 
             var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
@@ -175,7 +172,7 @@ namespace NetCore7API.Services
 
             await _postRepository.LoadComment(post, commentId);
 
-            var comment = post.RemoveComment(user.Id, commentId);
+            post.RemoveComment(user.Id, commentId);
 
             _postRepository.Update(post);
 

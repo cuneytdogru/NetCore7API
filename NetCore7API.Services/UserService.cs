@@ -14,21 +14,18 @@ namespace NetCore7API.Services
         private readonly IUserProvider _userProvider;
         private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
 
         public UserService(
             IUserRepository userRepository,
             IUserProvider userProvider,
             ITokenService tokenService,
-            IUnitOfWork unitOfWork,
-            IMapper mapper
+            IUnitOfWork unitOfWork
             )
         {
             _userRepository = userRepository;
             _userProvider = userProvider;
             _tokenService = tokenService;
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
         }
 
         public async Task<Guid> RegisterAsync(RegisterUserDto dto)
