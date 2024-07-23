@@ -44,7 +44,7 @@ namespace NetCore7API.Controllers
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> UserAsync([FromBody] RegisterUserDto dto)
+        public virtual async Task<ActionResult> UserAsync([FromBody] RegisterUserRequestDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -57,7 +57,7 @@ namespace NetCore7API.Controllers
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> PutAsync([FromBody] UpdateUserDto dto)
+        public virtual async Task<ActionResult> PutAsync([FromBody] UpdateUserRequestDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -70,7 +70,7 @@ namespace NetCore7API.Controllers
         [HttpPut("change-password")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<UserDto>> ChangePasswordAsync([FromBody] ChangePasswordDto dto)
+        public virtual async Task<ActionResult<UserDto>> ChangePasswordAsync([FromBody] ChangePasswordRequestDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

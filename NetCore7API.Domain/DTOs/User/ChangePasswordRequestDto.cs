@@ -10,12 +10,16 @@ using System.Threading.Tasks;
 
 namespace NetCore7API.Domain.DTOs.User
 {
-    public class ChangePasswordDto
+    public class ChangePasswordRequestDto
     {
         [Required]
+        [MaxLength(Models.Constants.DataAnnotations.MaxLength.Password)]
+        [MinLength(Models.Constants.DataAnnotations.MinLength.Password)]
         public string OldPassword { get; set; } = string.Empty;
 
         [Required]
+        [MaxLength(Models.Constants.DataAnnotations.MaxLength.Password)]
+        [MinLength(Models.Constants.DataAnnotations.MinLength.Password)]
         public string NewPassword { get; set; } = string.Empty;
     }
 }

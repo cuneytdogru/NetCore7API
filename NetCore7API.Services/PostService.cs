@@ -28,7 +28,7 @@ namespace NetCore7API.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<Guid> CreateAsync(CreatePostDto dto)
+        public async Task<Guid> CreateAsync(CreatePostRequestDto dto)
         {
             var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
 
@@ -44,7 +44,7 @@ namespace NetCore7API.Services
             return post.Id;
         }
 
-        public async Task UpdateAsync(Guid id, UpdatePostDto dto)
+        public async Task UpdateAsync(Guid id, UpdatePostRequestDto dto)
         {
             var post = await _postRepository.FindAsync(id);
 
@@ -61,7 +61,7 @@ namespace NetCore7API.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task LikeAsync(Guid id, LikePostDto dto)
+        public async Task LikeAsync(Guid id, LikePostRequestDto dto)
         {
             if (_tokenService.UserId is null)
                 throw new UserUnauthorizedException("User is not authorized!");
@@ -107,7 +107,7 @@ namespace NetCore7API.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<Guid> AddCommentAsync(Guid id, CreateCommentDto dto)
+        public async Task<Guid> AddCommentAsync(Guid id, CreateCommentRequestDto dto)
         {
             if (_tokenService.UserId is null)
                 throw new UserUnauthorizedException("User is not authorized!");
@@ -131,7 +131,7 @@ namespace NetCore7API.Services
             return comment.Id;
         }
 
-        public async Task UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentDto dto)
+        public async Task UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentRequestDto dto)
         {
             if (_tokenService.UserId is null)
                 throw new UserUnauthorizedException("User is not authorized!");

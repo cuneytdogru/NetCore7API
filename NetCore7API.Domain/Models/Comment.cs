@@ -30,12 +30,12 @@ namespace NetCore7API.Domain.Models
             Likes = new HashSet<Like>();
         }
 
-        public void Update(UpdateCommentDto dto)
+        public void Update(UpdateCommentRequestDto dto)
         {
             this.Text = dto.Text;
         }
 
-        public void Hide(HideCommentDto dto)
+        public void Hide(HideCommentRequestDto dto)
         {
             this.Hidden = dto.IsHidden;
         }

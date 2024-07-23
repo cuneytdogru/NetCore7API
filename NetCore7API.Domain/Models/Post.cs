@@ -38,7 +38,7 @@ namespace NetCore7API.Domain.Models
             this.Comments = new HashSet<Comment>();
         }
 
-        public void Update(UpdatePostDto dto)
+        public void Update(UpdatePostRequestDto dto)
         {
             this.Text = dto.Text;
             this.ImageURL = dto.ImageURL;
@@ -66,7 +66,7 @@ namespace NetCore7API.Domain.Models
             }
         }
 
-        public Comment AddComment(Guid userId, CreateCommentDto dto)
+        public Comment AddComment(Guid userId, CreateCommentRequestDto dto)
         {
             var comment = new Models.Comment(this.Id, userId, dto.Text);
             this.Comments.Add(comment);
@@ -75,7 +75,7 @@ namespace NetCore7API.Domain.Models
             return comment;
         }
 
-        public Comment? UpdateComment(Guid userId, Guid commentId, UpdateCommentDto dto)
+        public Comment? UpdateComment(Guid userId, Guid commentId, UpdateCommentRequestDto dto)
         {
             var comment = this.Comments
                 .Where(x => x.UserId == userId)

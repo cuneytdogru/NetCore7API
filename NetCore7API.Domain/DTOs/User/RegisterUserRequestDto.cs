@@ -10,19 +10,25 @@ using System.Threading.Tasks;
 
 namespace NetCore7API.Domain.DTOs.User
 {
-    public class RegisterUserDto
+    public class RegisterUserRequestDto
     {
         [Required]
+        [MaxLength(Models.Constants.DataAnnotations.MaxLength.Username)]
+        [MinLength(Models.Constants.DataAnnotations.MinLength.Username)]
         public string UserName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
+        [MaxLength(Models.Constants.DataAnnotations.MaxLength.Default)]
         public string Email { get; set; } = string.Empty;
 
         [Required]
+        [MaxLength(Models.Constants.DataAnnotations.MaxLength.Password)]
+        [MinLength(Models.Constants.DataAnnotations.MinLength.Password)]
         public string Password { get; set; } = string.Empty;
 
         [Required]
+        [MaxLength(Models.Constants.DataAnnotations.MaxLength.Default)]
         public string FullName { get; set; } = string.Empty;
     }
 }

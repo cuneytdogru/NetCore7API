@@ -28,7 +28,7 @@ namespace NetCore7API.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<Guid> RegisterAsync(RegisterUserDto dto)
+        public async Task<Guid> RegisterAsync(RegisterUserRequestDto dto)
         {
             var isUserNameExists = await _userProvider.IsUserNameInUse(dto.UserName);
             if (isUserNameExists)
@@ -47,7 +47,7 @@ namespace NetCore7API.Services
             return user.Id;
         }
 
-        public async Task UpdateAsync(Guid id, UpdateUserDto dto)
+        public async Task UpdateAsync(Guid id, UpdateUserRequestDto dto)
         {
             if (_tokenService.UserId != id)
                 throw new UserException("User not found.");
@@ -68,7 +68,7 @@ namespace NetCore7API.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task ChangePasswordAsync(Guid id, ChangePasswordDto dto)
+        public async Task ChangePasswordAsync(Guid id, ChangePasswordRequestDto dto)
         {
             if (_tokenService.UserId != id)
                 throw new UserException("User not found.");

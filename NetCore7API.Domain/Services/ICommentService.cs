@@ -6,11 +6,11 @@ namespace NetCore7API.Domain.Services
 {
     public interface ICommentService
     {
-        Task CreateAsync(CreateCommentDto dto);
+        Task CreateAsync(CreateCommentRequestDto dto);
 
-        Task UpdateAsync(Guid id, UpdateCommentDto dto);
+        Task UpdateAsync(Guid id, UpdateCommentRequestDto dto);
 
-        Task HideAsync(Guid id, HideCommentDto dto);
+        Task HideAsync(Guid id, HideCommentRequestDto dto);
 
         Task DeleteAsync(Guid id);
     }

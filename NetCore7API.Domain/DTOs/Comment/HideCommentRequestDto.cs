@@ -7,13 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetCore7API.Domain.DTOs.Post
+namespace NetCore7API.Domain.DTOs.Comment
 {
-    public class UpdatePostDto
+    public class HideCommentRequestDto
     {
         [Required]
-        public string Text { get; set; } = string.Empty;
-
-        public string? ImageURL { get; set; } = null;
+        public bool IsHidden { get; set; }
     }
 }

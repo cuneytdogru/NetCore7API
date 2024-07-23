@@ -41,7 +41,7 @@ namespace NetCore7API.Domain.Models
             this.Likes = new HashSet<Like>();
         }
 
-        public void Update(UpdateUserDto dto)
+        public void Update(UpdateUserRequestDto dto)
         {
             this.UserName = dto.UserName;
             this.FullName = dto.FullName;
@@ -57,7 +57,7 @@ namespace NetCore7API.Domain.Models
                 AppSettings.Password.Iteration);
         }
 
-        public void ChangePassword(ChangePasswordDto dto)
+        public void ChangePassword(ChangePasswordRequestDto dto)
         {
             if (this.Password is not null && this.Password != dto.OldPassword)
                 throw new UserException("Old password is invalid!");

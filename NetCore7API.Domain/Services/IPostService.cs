@@ -7,17 +7,17 @@ namespace NetCore7API.Domain.Services
 {
     public interface IPostService
     {
-        Task<Guid> CreateAsync(CreatePostDto dto);
+        Task<Guid> CreateAsync(CreatePostRequestDto dto);
 
-        Task UpdateAsync(Guid id, UpdatePostDto dto);
+        Task UpdateAsync(Guid id, UpdatePostRequestDto dto);
 
-        Task LikeAsync(Guid id, LikePostDto dto);
+        Task LikeAsync(Guid id, LikePostRequestDto dto);
 
         Task DeleteAsync(Guid id);
 
-        Task<Guid> AddCommentAsync(Guid id, CreateCommentDto dto);
+        Task<Guid> AddCommentAsync(Guid id, CreateCommentRequestDto dto);
 
-        Task UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentDto dto);
+        Task UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentRequestDto dto);
 
         Task RemoveCommentAsync(Guid id, Guid commentId);
     }

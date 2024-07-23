@@ -164,7 +164,7 @@ namespace NetCore7API.EFCore
                     for (int c = 0; c < numberOfComments; c++)
                     {
                         post.AddComment(context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)).Id,
-                            new Domain.DTOs.Comment.CreateCommentDto() { Text = TextList.ElementAt(randomGenerator.Next(TextList.Count)) });
+                            new Domain.DTOs.Comment.CreateCommentRequestDto() { Text = TextList.ElementAt(randomGenerator.Next(TextList.Count)) });
                     }
 
                     for (int l = 0; l < numberOfLikes; l++)
