@@ -5,6 +5,10 @@ using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Repositories;
 using NetCore7API.Domain.Services;
 using NetCore7API.Domain.Providers;
+using FluentValidation;
+using System;
+using NetCore7API.Domain.Results;
+using NetCore7API.Domain.Errors;
 
 namespace NetCore7API.Services
 {
@@ -14,90 +18,102 @@ namespace NetCore7API.Services
         private readonly IUserProvider _userProvider;
         private readonly ITokenService _tokenService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IValidator<User> _validator;
 
         public UserService(
             IUserRepository userRepository,
             IUserProvider userProvider,
             ITokenService tokenService,
-            IUnitOfWork unitOfWork
+            IUnitOfWork unitOfWork,
+            IValidator<User> validator
             )
         {
             _userRepository = userRepository;
             _userProvider = userProvider;
             _tokenService = tokenService;
             _unitOfWork = unitOfWork;
+            _validator = validator;
         }
 
-        public async Task<Guid> RegisterAsync(RegisterUserRequestDto dto)
+        public async Task<IResult<Guid>> RegisterAsync(RegisterUserRequestDto dto)
         {
-            var isUserNameExists = await _userProvider.IsUserNameInUse(dto.UserName);
-            if (isUserNameExists)
-                throw new UserException("Username already in use! Please type another username.");
-
-            var isEmailExists = await _userProvider.IsEmailInUse(dto.Email);
-            if (isEmailExists)
-                throw new UserException("Email address already in use! Please type another email.");
-
             var user = new User(dto.UserName, dto.Email, dto.FullName, dto.Password);
+
+            var validationResult = await _validator.ValidateAsync(user);
+
+            if (!validationResult.IsValid)
+                return Result<Guid>.Failure(Error.ValidationErrors(validationResult.ToDictionary()));
 
             _userRepository.Add(user);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return user.Id;
+            return Result<Guid>.Success(user.Id);
         }
 
-        public async Task UpdateAsync(Guid id, UpdateUserRequestDto dto)
+        public async Task<IResult> UpdateAsync(Guid id, UpdateUserRequestDto dto)
         {
             if (_tokenService.UserId != id)
-                throw new UserException("User not found.");
+                return Result.Failure(Error.NotFound());
 
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)
-                throw new UserException("User not found.");
-
-            var isUserNameExists = await _userProvider.IsUserNameInUse(dto.UserName, id);
-            if (isUserNameExists)
-                throw new UserException("Username already in use! Please type another username.");
+                return Result.Failure(Error.NotFound());
 
             user.Update(dto);
 
+            var validationResult = await _validator.ValidateAsync(user);
+
+            if (!validationResult.IsValid)
+                return Result.Failure(Error.ValidationErrors(validationResult.ToDictionary()));
+
             _userRepository.Update(user);
 
             await _unitOfWork.SaveChangesAsync();
+
+            return Result.Success();
         }
 
-        public async Task ChangePasswordAsync(Guid id, ChangePasswordRequestDto dto)
+        public async Task<IResult> ChangePasswordAsync(Guid id, ChangePasswordRequestDto dto)
         {
             if (_tokenService.UserId != id)
-                throw new UserException("User not found.");
+                return Result.Failure(Error.NotFound());
 
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)
-                throw new UserException("User not found.");
+                return Result.Failure(Error.NotFound());
 
             user.ChangePassword(dto);
 
+            var validationResult = await _validator.ValidateAsync(user);
+
+            if (!validationResult.IsValid)
+                return Result.Failure(Error.ValidationErrors(validationResult.ToDictionary()));
+
             _userRepository.Update(user);
 
             await _unitOfWork.SaveChangesAsync();
+
+            return Result.Success();
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task<IResult> DeleteAsync(Guid id)
         {
             if (_tokenService.UserId != id)
-                throw new UserException("User not found.");
+                return Result.Failure(Error.NotFound());
 
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)
-                throw new Exception("User not found.");
+                return Result.Failure(Error.NotFound());
 
             _userRepository.SoftDelete(user);
 
             await _unitOfWork.SaveChangesAsync();
+
+            return Result.Success();
         }
     }
 }

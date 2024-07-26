@@ -44,14 +44,14 @@ namespace NetCore7API.Controllers
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> UserAsync([FromBody] RegisterUserRequestDto dto)
+        public virtual async Task<ActionResult> RegisterAsync([FromBody] RegisterUserRequestDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _userService.RegisterAsync(dto);
 
-            var userId = await _userService.RegisterAsync(dto);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
-            return CreatedAtAction("Get", new { id = userId });
+            return CreatedAtAction("Get", new { id = result.Value });
         }
 
         [HttpPut]
@@ -59,10 +59,10 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult> PutAsync([FromBody] UpdateUserRequestDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _userService.UpdateAsync(_tokenService.UserId.GetValueOrDefault(), dto);
 
-            await _userService.UpdateAsync(_tokenService.UserId.GetValueOrDefault(), dto);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }
@@ -72,10 +72,10 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<UserDto>> ChangePasswordAsync([FromBody] ChangePasswordRequestDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _userService.ChangePasswordAsync(_tokenService.UserId.GetValueOrDefault(), dto);
 
-            await _userService.ChangePasswordAsync(_tokenService.UserId.GetValueOrDefault(), dto);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }
@@ -85,10 +85,10 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult> DeleteAsync(Guid id)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _userService.DeleteAsync(_tokenService.UserId.GetValueOrDefault());
 
-            await _userService.DeleteAsync(_tokenService.UserId.GetValueOrDefault());
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }
