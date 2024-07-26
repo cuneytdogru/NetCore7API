@@ -1,4 +1,5 @@
-﻿using NetCore7API.Domain.DTOs.Post;
+﻿using NetCore7API.Domain.DTOs;
+using NetCore7API.Domain.DTOs.Post;
 using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Exceptions;
 using NetCore7API.Domain.Models.Interfaces;
@@ -50,11 +51,7 @@ namespace NetCore7API.Domain.Models
         internal void SetPassword(string password)
         {
             this.PasswordSalt = PasswordHasher.GenerateSalt();
-            this.Password = PasswordHasher.ComputeHash(
-                password,
-                PasswordSalt,
-                AppSettings.Password.Pepper,
-                AppSettings.Password.Iteration);
+            this.Password = this.ComputeHash(password);
         }
 
         public void ChangePassword(ChangePasswordRequestDto dto)
@@ -63,6 +60,26 @@ namespace NetCore7API.Domain.Models
                 throw new UserException("Old password is invalid!");
 
             SetPassword(dto.NewPassword);
+        }
+
+        private string ComputeHash(string password)
+        {
+            ArgumentNullException.ThrowIfNullOrEmpty(password, nameof(password));
+            ArgumentNullException.ThrowIfNullOrEmpty(this.PasswordSalt, nameof(PasswordSalt));
+
+            return PasswordHasher.ComputeHash(
+                password,
+                this.PasswordSalt,
+                AppSettings.Password.Pepper,
+                AppSettings.Password.Iteration);
+        }
+
+        public bool CheckPassword(string password)
+        {
+            if (this.Password == this.ComputeHash(password))
+                return true;
+
+            return false;
         }
     }
 }

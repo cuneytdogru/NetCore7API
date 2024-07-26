@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NetCore7API.Domain.DTOs.Auth;
+using NetCore7API.Domain.Results;
 using NetCore7API.Domain.Services;
 
 namespace NetCore7API.Controllers
@@ -28,9 +29,12 @@ namespace NetCore7API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<LoginResponseDto>> LoginAsync(LoginRequestDto dto)
         {
-            var loginResponse = await _authService.Login(dto);
+            var result = await _authService.Login(dto);
 
-            return Ok(loginResponse);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
+
+            return Ok(result.Value);
         }
 
         /// <summary>

@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using NetCore7API.Domain.DTOs.Auth;
 using NetCore7API.Domain.DTOs.Post;
+using NetCore7API.Domain.Errors;
 using NetCore7API.Domain.Exceptions;
 using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Models.Interfaces;
 using NetCore7API.Domain.Repositories;
+using NetCore7API.Domain.Results;
 using NetCore7API.Domain.Services;
 using NetCore7API.Domain.Utils;
 
@@ -27,19 +29,15 @@ namespace NetCore7API.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<LoginResponseDto> Login(LoginRequestDto dto)
+        public async Task<IResult<LoginResponseDto>> Login(LoginRequestDto dto)
         {
             var user = await _userRepository.GetByUserNameAsync(dto.UserName);
 
             if (user == null)
-                throw new UserException("Invalid username or password!");
+                return Result<LoginResponseDto>.Failure(LoginErrors.InvalidUsernameOrPassword);
 
-            if (user.Password != PasswordHasher.ComputeHash(
-                dto.Password,
-                user.PasswordSalt,
-                AppSettings.Password.Pepper,
-                AppSettings.Password.Iteration))
-                throw new UserException("Invalid username or password!");
+            if (!user.CheckPassword(dto.Password))
+                return Result<LoginResponseDto>.Failure(LoginErrors.InvalidUsernameOrPassword);
 
             var existingToken = await _tokenRepository.GetActiveTokenFromUser(user.Id);
 
@@ -52,10 +50,10 @@ namespace NetCore7API.Services
 
             await _unitOfWork.SaveChangesAsync();
 
-            return new LoginResponseDto(token.Key);
+            return Result<LoginResponseDto>.Success(new LoginResponseDto(token.Key));
         }
 
-        public async Task Logout(string key)
+        public async Task<IResult> Logout(string key)
         {
             if (key.StartsWith("Bearer"))
                 key = key.Substring(7).Trim();
@@ -70,6 +68,8 @@ namespace NetCore7API.Services
 
                 await _unitOfWork.SaveChangesAsync();
             }
+
+            return Result.Success();
         }
     }
 }
