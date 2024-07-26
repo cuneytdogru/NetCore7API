@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
 using NetCore7API.Domain.Services;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace NetCore7API.Services
             {
                 typeof(Domain.Mappings.MappingProfiles)
             });
+
+            services.AddValidatorsFromAssemblyContaining<Domain.Validations.UserValidation>();
 
             return services;
         }
