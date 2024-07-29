@@ -40,20 +40,6 @@ namespace NetCore7API.Controllers
             return Ok(user);
         }
 
-        [HttpPost]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> RegisterAsync([FromBody] RegisterUserRequestDto dto)
-        {
-            var result = await _userService.RegisterAsync(dto);
-
-            if (result.IsFailure)
-                return BadRequest(result.Errors);
-
-            return CreatedAtAction("Get", new { id = result.Value });
-        }
-
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
