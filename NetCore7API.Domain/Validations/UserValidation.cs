@@ -13,25 +13,17 @@ namespace NetCore7API.Domain.Validations
 {
     public class UserValidation : AbstractValidator<User>
     {
-        private readonly IUserProvider _userProvider;
-
-        public UserValidation(IUserProvider userProvider)
+        public UserValidation()
         {
-            _userProvider = userProvider;
-
             RuleFor(x => x.UserName)
                 .NotEmpty()
                 .MinimumLength(MinLength.Username)
-                .MaximumLength(MaxLength.Username)
-                .MustAsync((user, userName, token) => IsUsernameAvailable(userName, user.Id))
-                .WithMessage(UserErrors.UsernameInUse.Message);
+                .MaximumLength(MaxLength.Username);
 
             RuleFor(x => x.Email)
                 .NotEmpty()
                 .MaximumLength(MaxLength.Default)
-                .EmailAddress()
-                .MustAsync((user, email, token) => IsEmailAvailable(email, user.Id))
-                .WithMessage(UserErrors.EmailInUse.Message);
+                .EmailAddress();
 
             RuleFor(x => x.FullName)
                 .NotEmpty()
@@ -41,16 +33,6 @@ namespace NetCore7API.Domain.Validations
                 .NotEmpty()
                 .MinimumLength(MinLength.Password)
                 .MaximumLength(MaxLength.Password);
-        }
-
-        private async Task<bool> IsUsernameAvailable(string userName, Guid userId)
-        {
-            return !await _userProvider.IsUserNameInUse(userName, userId);
-        }
-
-        private async Task<bool> IsEmailAvailable(string email, Guid userId)
-        {
-            return !await _userProvider.IsEmailInUse(email, userId);
         }
     }
 }

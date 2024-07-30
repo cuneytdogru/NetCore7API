@@ -21,6 +21,11 @@ namespace NetCore7API.Domain.Validations
 
             RuleFor(x => x.ImageURL)
                 .NotEmpty();
+
+            When(x => x.Comments.Any(), () =>
+            {
+                RuleForEach(x => x.Comments).SetValidator(new CommentValidation());
+            });
         }
     }
 }

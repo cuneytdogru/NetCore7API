@@ -128,7 +128,7 @@ namespace NetCore7API.Services
             if (post is null)
                 return Result<Guid>.Failure(Error.NotFound("Post not found."));
 
-            var comment = post.AddComment(user, dto);
+            var comment = post.AddComment(dto, user);
 
             _postRepository.Update(post);
 
@@ -156,7 +156,7 @@ namespace NetCore7API.Services
             if (comment is null)
                 return Result.Failure(Error.NotFound("Comment not found."));
 
-            post.UpdateComment(user, comment, dto);
+            post.UpdateComment(dto, comment, user);
 
             var validationResult = await _validator.ValidateAsync(post);
 
@@ -184,7 +184,7 @@ namespace NetCore7API.Services
             if (comment is null)
                 return Result.Failure(Error.NotFound("Comment not found."));
 
-            post.RemoveComment(user, comment);
+            post.RemoveComment(comment, user);
 
             var validationResult = await _validator.ValidateAsync(post);
 

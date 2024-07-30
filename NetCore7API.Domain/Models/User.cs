@@ -72,7 +72,7 @@ namespace NetCore7API.Domain.Models
             if (this.Id != user.Id)
                 throw new UserUnauthorizedException("You are not authorized to modify this user.");
 
-            if (this.Password is not null && this.Password != dto.OldPassword)
+            if (!CheckPassword(dto.OldPassword))
                 throw new UserException("Old password is invalid!");
 
             SetPassword(dto.NewPassword);

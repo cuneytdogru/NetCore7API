@@ -81,7 +81,7 @@ namespace NetCore7API.Domain.Models
             }
         }
 
-        public Comment AddComment(User user, CreateCommentRequestDto dto)
+        public Comment AddComment(CreateCommentRequestDto dto, User user)
         {
             var comment = new Models.Comment(this, user, dto.Text);
             this.Comments.Add(comment);
@@ -90,7 +90,7 @@ namespace NetCore7API.Domain.Models
             return comment;
         }
 
-        public Comment UpdateComment(User user, Comment comment, UpdateCommentRequestDto dto)
+        public Comment UpdateComment(UpdateCommentRequestDto dto, Comment comment, User user)
         {
             if (comment.UserId != user.Id)
                 throw new UserUnauthorizedException("You are not authorized to modify this comment.");
@@ -100,7 +100,7 @@ namespace NetCore7API.Domain.Models
             return comment;
         }
 
-        public void RemoveComment(User user, Comment comment)
+        public void RemoveComment(Comment comment, User user)
         {
             if (comment.UserId != user.Id)
                 throw new UserUnauthorizedException("You are not authorized to modify this comment.");
