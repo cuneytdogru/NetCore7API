@@ -12,26 +12,17 @@ using NetCore7API.Domain.Errors;
 
 namespace NetCore7API.Services
 {
-    public class UserService : IUserService
+    public class UserService : BaseService, IUserService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IUserProvider _userProvider;
-        private readonly ITokenService _tokenService;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IValidator<User> _validator;
 
         public UserService(
-            IUserRepository userRepository,
-            IUserProvider userProvider,
             ITokenService tokenService,
             IUnitOfWork unitOfWork,
+            IUserRepository userRepository,
             IValidator<User> validator
-            )
+            ) : base(tokenService, unitOfWork, userRepository)
         {
-            _userRepository = userRepository;
-            _userProvider = userProvider;
-            _tokenService = tokenService;
-            _unitOfWork = unitOfWork;
             _validator = validator;
         }
 
@@ -53,15 +44,14 @@ namespace NetCore7API.Services
 
         public async Task<IResult> UpdateAsync(Guid id, UpdateUserRequestDto dto)
         {
-            if (_tokenService.UserId != id)
-                return Result.Failure(Error.NotFound());
+            var currentUser = await GetCurrentUser();
 
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)
                 return Result.Failure(Error.NotFound());
 
-            user.Update(dto);
+            user.Update(dto, currentUser);
 
             var validationResult = await _validator.ValidateAsync(user);
 
@@ -77,15 +67,14 @@ namespace NetCore7API.Services
 
         public async Task<IResult> ChangePasswordAsync(Guid id, ChangePasswordRequestDto dto)
         {
-            if (_tokenService.UserId != id)
-                return Result.Failure(Error.NotFound());
+            var currentUser = await GetCurrentUser();
 
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)
                 return Result.Failure(Error.NotFound());
 
-            user.ChangePassword(dto);
+            user.ChangePassword(dto, currentUser);
 
             var validationResult = await _validator.ValidateAsync(user);
 
@@ -101,13 +90,14 @@ namespace NetCore7API.Services
 
         public async Task<IResult> DeleteAsync(Guid id)
         {
-            if (_tokenService.UserId != id)
-                return Result.Failure(Error.NotFound());
+            var currentUser = await GetCurrentUser();
 
             var user = await _userRepository.FindAsync(id);
 
             if (user is null)
                 return Result.Failure(Error.NotFound());
+
+            user.Delete(currentUser);
 
             _userRepository.SoftDelete(user);
 

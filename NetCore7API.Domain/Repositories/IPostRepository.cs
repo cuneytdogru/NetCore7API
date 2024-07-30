@@ -16,6 +16,6 @@ namespace NetCore7API.Domain.Repositories
     {
         Task<Post?> LoadLike(Post post, Guid userId);
 
-        Task<Post?> LoadComment(Post post, Guid commentId);
+        Task<Comment?> LoadComment(Post post, Guid commentId);
     }
 }

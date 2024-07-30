@@ -15,14 +15,26 @@ namespace NetCore7API.Domain.Models
         public virtual User User { get; set; }
         public virtual Comment? Comment { get; set; }
 
-        public Like(
-            Guid postId,
-            Guid userId,
-            Guid? commentId = null)
+        private Like()
         {
-            this.PostId = postId;
-            this.UserId = userId;
-            this.CommentId = commentId;
+        }
+
+        public Like(
+            Post post,
+            User user,
+            Comment? comment = null)
+        {
+            this.Post = post;
+            this.User = user;
+
+            this.PostId = post.Id;
+            this.UserId = user.Id;
+
+            if (comment is not null)
+            {
+                this.Comment = comment;
+                this.CommentId = comment.Id;
+            }
         }
     }
 }

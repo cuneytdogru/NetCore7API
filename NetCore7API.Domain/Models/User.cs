@@ -14,6 +14,8 @@ namespace NetCore7API.Domain.Models
 {
     public class User : BaseEntity
     {
+        public static User SystemUser = new User("System", "system@angularblog.com", "System User");
+
         public string UserName { get; private set; }
         public string Email { get; private set; }
         public string FullName { get; private set; }
@@ -42,10 +44,21 @@ namespace NetCore7API.Domain.Models
             this.Likes = new HashSet<Like>();
         }
 
-        public void Update(UpdateUserRequestDto dto)
+        public void Update(UpdateUserRequestDto dto, User user)
         {
+            if (this.Id != user.Id)
+                throw new UserUnauthorizedException("You are not authorized to modify this user.");
+
             this.UserName = dto.UserName;
             this.FullName = dto.FullName;
+        }
+
+        public void Delete(User user)
+        {
+            if (this.Id != user.Id)
+                throw new UserUnauthorizedException("You are not authorized to modify this user.");
+
+            this.Deleted = true;
         }
 
         internal void SetPassword(string password)
@@ -54,8 +67,11 @@ namespace NetCore7API.Domain.Models
             this.Password = this.ComputeHash(password);
         }
 
-        public void ChangePassword(ChangePasswordRequestDto dto)
+        public void ChangePassword(ChangePasswordRequestDto dto, User user)
         {
+            if (this.Id != user.Id)
+                throw new UserUnauthorizedException("You are not authorized to modify this user.");
+
             if (this.Password is not null && this.Password != dto.OldPassword)
                 throw new UserException("Old password is invalid!");
 

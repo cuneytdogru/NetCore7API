@@ -17,5 +17,11 @@ namespace NetCore7API.Domain.Repositories
         /// <param name="userName"></param>
         /// <returns></returns>
         Task<User?> GetByUserNameAsync(string userName);
+
+        /// <summary>
+        /// Finds an user with username or email.
+        /// </summary>
+        /// <returns></returns>
+        Task<User?> GetByUserNameOrEmailAsync(string value);
     }
 }

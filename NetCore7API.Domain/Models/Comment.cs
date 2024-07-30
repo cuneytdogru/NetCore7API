@@ -16,14 +16,23 @@ namespace NetCore7API.Domain.Models
         public virtual Post Post { get; set; }
         public virtual User User { get; set; }
 
+        private Comment()
+        {
+            Likes = new HashSet<Like>();
+        }
+
         public Comment(
-            Guid postId,
-            Guid userId,
+            Post post,
+            User user,
             string text,
             bool hidden = false)
         {
-            this.PostId = postId;
-            this.UserId = userId;
+            this.Post = post;
+            this.User = user;
+
+            this.PostId = post.Id;
+            this.UserId = user.Id;
+
             this.Text = text;
             this.Hidden = hidden;
 

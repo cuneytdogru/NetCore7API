@@ -1,6 +1,8 @@
 ﻿using NetCore7API.Domain.DTOs.Comment;
 using NetCore7API.Domain.DTOs.Post;
+using NetCore7API.Domain.Exceptions;
 using NetCore7API.Domain.Models.Interfaces;
+using NetCore7API.Domain.Services;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NetCore7API.Domain.Models
@@ -24,11 +26,13 @@ namespace NetCore7API.Domain.Models
         }
 
         public Post(
-            Guid userId,
+            User user,
             string text,
             string? imageURL)
         {
-            this.UserId = userId;
+            this.User = user;
+            this.UserId = user.Id;
+
             this.Text = text;
             this.ImageURL = imageURL;
             this.TotalLikes = 0;
@@ -38,24 +42,35 @@ namespace NetCore7API.Domain.Models
             this.Comments = new HashSet<Comment>();
         }
 
-        public void Update(UpdatePostRequestDto dto)
+        public void Update(UpdatePostRequestDto dto, User user)
         {
+            if (this.UserId != user.Id)
+                throw new UserUnauthorizedException("You are not authorized to modify this post.");
+
             this.Text = dto.Text;
             this.ImageURL = dto.ImageURL;
         }
 
-        public void AddLike(Guid userId)
+        public void Delete(User user)
         {
-            if (this.Likes.Any(x => x.UserId == userId))
+            if (this.UserId != user.Id)
+                throw new UserUnauthorizedException("You are not authorized to modify this post.");
+
+            this.Deleted = true;
+        }
+
+        public void AddLike(User user)
+        {
+            if (this.Likes.Any(x => x.UserId == user.Id))
                 return;
 
-            this.Likes.Add(new Models.Like(this.Id, userId));
+            this.Likes.Add(new Models.Like(this, user));
             this.TotalLikes++;
         }
 
-        public void RemoveLike(Guid userId)
+        public void RemoveLike(User user)
         {
-            var like = this.Likes.FirstOrDefault(x => x.UserId == userId);
+            var like = this.Likes.FirstOrDefault(x => x.UserId == user.Id);
 
             if (like is not null)
             {
@@ -66,44 +81,34 @@ namespace NetCore7API.Domain.Models
             }
         }
 
-        public Comment AddComment(Guid userId, CreateCommentRequestDto dto)
+        public Comment AddComment(User user, CreateCommentRequestDto dto)
         {
-            var comment = new Models.Comment(this.Id, userId, dto.Text);
+            var comment = new Models.Comment(this, user, dto.Text);
             this.Comments.Add(comment);
             this.TotalComments++;
 
             return comment;
         }
 
-        public Comment? UpdateComment(Guid userId, Guid commentId, UpdateCommentRequestDto dto)
+        public Comment UpdateComment(User user, Comment comment, UpdateCommentRequestDto dto)
         {
-            var comment = this.Comments
-                .Where(x => x.UserId == userId)
-                .FirstOrDefault(x => x.Id == commentId);
+            if (comment.UserId != user.Id)
+                throw new UserUnauthorizedException("You are not authorized to modify this comment.");
 
-            if (comment is not null)
-            {
-                comment.Update(dto);
-            }
+            comment.Update(dto);
 
             return comment;
         }
 
-        public Comment? RemoveComment(Guid userId, Guid commentId)
+        public void RemoveComment(User user, Comment comment)
         {
-            var comment = this.Comments
-                .Where(x => x.UserId == userId)
-                .FirstOrDefault(x => x.Id == commentId);
+            if (comment.UserId != user.Id)
+                throw new UserUnauthorizedException("You are not authorized to modify this comment.");
 
-            if (comment is not null)
-            {
-                this.Comments.Remove(comment);
+            this.Comments.Remove(comment);
 
-                if (this.TotalComments > 0)
-                    this.TotalComments--;
-            }
-
-            return comment;
+            if (this.TotalComments > 0)
+                this.TotalComments--;
         }
     }
 }

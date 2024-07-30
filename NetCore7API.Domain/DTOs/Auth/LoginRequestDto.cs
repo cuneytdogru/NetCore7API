@@ -15,7 +15,7 @@ namespace NetCore7API.Domain.DTOs.Auth
         public string UserName { get; set; } = string.Empty;
 
         [Required]
-        [MinLength(Models.Constants.DataAnnotations.MinLength.Username)]
+        [MinLength(Models.Constants.DataAnnotations.MinLength.Password)]
         [MaxLength(Models.Constants.DataAnnotations.MaxLength.Password)]
         public string Password { get; set; } = string.Empty;
     }

@@ -31,7 +31,7 @@ namespace NetCore7API.Services
 
         public async Task<IResult<LoginResponseDto>> Login(LoginRequestDto dto)
         {
-            var user = await _userRepository.GetByUserNameAsync(dto.UserName);
+            var user = await _userRepository.GetByUserNameOrEmailAsync(dto.UserName);
 
             if (user == null)
                 return Result<LoginResponseDto>.Failure(LoginErrors.InvalidUsernameOrPassword);
