@@ -9,9 +9,13 @@ using System.Threading.Tasks;
 
 namespace NetCore7API.Domain.DTOs.Post
 {
-    public class LikePostDto
+    public class UpdatePostRequestDto
     {
         [Required]
-        public bool IsLiked { get; set; }
+        [MaxLength(Models.Constants.DataAnnotations.MaxLength.Text)]
+        public string Text { get; set; } = string.Empty;
+
+        [MaxLength(Models.Constants.DataAnnotations.MaxLength.Text)]
+        public string? ImageURL { get; set; } = null;
     }
 }

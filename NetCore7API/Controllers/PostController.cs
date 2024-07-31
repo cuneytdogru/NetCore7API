@@ -51,25 +51,25 @@ namespace NetCore7API.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> PostAsync([FromBody] CreatePostDto dto)
+        public virtual async Task<ActionResult> PostAsync([FromBody] CreatePostRequestDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _postService.CreateAsync(dto);
 
-            var postId = await _postService.CreateAsync(dto);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
-            return CreatedAtAction("Get", new { id = postId }, postId);
+            return CreatedAtAction("Get", new { id = result.Value }, result.Value);
         }
 
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> PutAsync(Guid id, [FromBody] UpdatePostDto dto)
+        public virtual async Task<ActionResult> PutAsync(Guid id, [FromBody] UpdatePostRequestDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _postService.UpdateAsync(id, dto);
 
-            await _postService.UpdateAsync(id, dto);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }
@@ -77,12 +77,12 @@ namespace NetCore7API.Controllers
         [HttpPut("{id}/like")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> LikeAsync(Guid id, [FromBody] LikePostDto dto)
+        public virtual async Task<ActionResult> LikeAsync(Guid id, [FromBody] LikePostRequestDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _postService.LikeAsync(id, dto);
 
-            await _postService.LikeAsync(id, dto);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }
@@ -92,10 +92,10 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult<PostDto>> DeleteAsync(Guid id)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _postService.DeleteAsync(id);
 
-            await _postService.DeleteAsync(id);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }
@@ -127,28 +127,28 @@ namespace NetCore7API.Controllers
         [HttpPost("{id}/comments")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> PostCommentAsync(Guid id, [FromBody] CreateCommentDto dto)
+        public virtual async Task<ActionResult> PostCommentAsync(Guid id, [FromBody] CreateCommentRequestDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _postService.AddCommentAsync(id, dto);
 
-            var commentId = await _postService.AddCommentAsync(id, dto);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return CreatedAtAction(
                 "GetComment",
-                new { id, commentId },
-                commentId);
+                new { id, commentId = result.Value },
+                result.Value);
         }
 
         [HttpPut("{id}/comments/{commentId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> PutCommentAsync(Guid id, Guid commentId, [FromBody] UpdateCommentDto dto)
+        public virtual async Task<ActionResult> PutCommentAsync(Guid id, Guid commentId, [FromBody] UpdateCommentRequestDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _postService.UpdateCommentAsync(id, commentId, dto);
 
-            await _postService.UpdateCommentAsync(id, commentId, dto);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }
@@ -158,10 +158,10 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult> DeleteCommentAsync(Guid id, Guid commentId)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _postService.RemoveCommentAsync(id, commentId);
 
-            await _postService.RemoveCommentAsync(id, commentId);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }

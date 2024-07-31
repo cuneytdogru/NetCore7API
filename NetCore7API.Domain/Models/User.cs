@@ -1,4 +1,5 @@
-﻿using NetCore7API.Domain.DTOs.Post;
+﻿using NetCore7API.Domain.DTOs;
+using NetCore7API.Domain.DTOs.Post;
 using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Exceptions;
 using NetCore7API.Domain.Models.Interfaces;
@@ -13,6 +14,8 @@ namespace NetCore7API.Domain.Models
 {
     public class User : BaseEntity
     {
+        public static User SystemUser = new User("System", "system@angularblog.com", "System User");
+
         public string UserName { get; private set; }
         public string Email { get; private set; }
         public string FullName { get; private set; }
@@ -41,28 +44,58 @@ namespace NetCore7API.Domain.Models
             this.Likes = new HashSet<Like>();
         }
 
-        public void Update(UpdateUserDto dto)
+        public void Update(UpdateUserRequestDto dto, User user)
         {
+            if (this.Id != user.Id)
+                throw new UserUnauthorizedException("You are not authorized to modify this user.");
+
             this.UserName = dto.UserName;
             this.FullName = dto.FullName;
+        }
+
+        public void Delete(User user)
+        {
+            if (this.Id != user.Id)
+                throw new UserUnauthorizedException("You are not authorized to modify this user.");
+
+            this.Deleted = true;
         }
 
         internal void SetPassword(string password)
         {
             this.PasswordSalt = PasswordHasher.GenerateSalt();
-            this.Password = PasswordHasher.ComputeHash(
+            this.Password = this.ComputeHash(password);
+        }
+
+        public void ChangePassword(ChangePasswordRequestDto dto, User user)
+        {
+            if (this.Id != user.Id)
+                throw new UserUnauthorizedException("You are not authorized to modify this user.");
+
+            if (!CheckPassword(dto.OldPassword))
+                throw new UserException("Old password is invalid!");
+
+            SetPassword(dto.NewPassword);
+        }
+
+        private string ComputeHash(string password)
+        {
+            ArgumentNullException.ThrowIfNullOrEmpty(password, nameof(password));
+            ArgumentNullException.ThrowIfNullOrEmpty(this.PasswordSalt, nameof(PasswordSalt));
+
+            return PasswordHasher.ComputeHash(
                 password,
-                PasswordSalt,
+                this.PasswordSalt,
                 AppSettings.Password.Pepper,
                 AppSettings.Password.Iteration);
         }
 
-        public void ChangePassword(ChangePasswordDto dto)
+        public bool CheckPassword(string password)
         {
-            if (this.Password is not null && this.Password != dto.OldPassword)
-                throw new UserException("Old password is invalid!");
+            if (this.Password == this.ComputeHash(password))
+                return true;
 
-            SetPassword(dto.NewPassword);
+            return false;
         }
     }
 }

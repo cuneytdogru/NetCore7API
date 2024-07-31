@@ -5,6 +5,7 @@ using NetCore7API.Authorization;
 using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Services;
 using NetCore7API.EFCore;
+using NetCore7API.Filters;
 using NetCore7API.Middlewares;
 using NetCore7API.Services;
 using System.Text;
@@ -49,7 +50,14 @@ builder.Services
     .AddEFCore(builder.Configuration)
     .AddServices();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(configure =>
+{
+    configure.Filters.Add<ValidateModelFilter>();
+}).ConfigureApiBehaviorOptions(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

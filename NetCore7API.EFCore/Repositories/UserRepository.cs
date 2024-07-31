@@ -25,5 +25,10 @@ namespace NetCore7API.EFCore.Repositories
         {
             return await Context.Set<User>().FirstOrDefaultAsync(x => x.UserName == userName);
         }
+
+        public async Task<User?> GetByUserNameOrEmailAsync(string value)
+        {
+            return await Context.Set<User>().FirstOrDefaultAsync(x => x.UserName == value || x.Email == value);
+        }
     }
 }

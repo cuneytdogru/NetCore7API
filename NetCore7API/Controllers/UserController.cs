@@ -40,29 +40,15 @@ namespace NetCore7API.Controllers
             return Ok(user);
         }
 
-        [HttpPost]
-        [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> UserAsync([FromBody] RegisterUserDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var userId = await _userService.RegisterAsync(dto);
-
-            return CreatedAtAction("Get", new { id = userId });
-        }
-
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult> PutAsync([FromBody] UpdateUserDto dto)
+        public virtual async Task<ActionResult> PutAsync([FromBody] UpdateUserRequestDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _userService.UpdateAsync(_tokenService.UserId.GetValueOrDefault(), dto);
 
-            await _userService.UpdateAsync(_tokenService.UserId.GetValueOrDefault(), dto);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }
@@ -70,12 +56,12 @@ namespace NetCore7API.Controllers
         [HttpPut("change-password")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public virtual async Task<ActionResult<UserDto>> ChangePasswordAsync([FromBody] ChangePasswordDto dto)
+        public virtual async Task<ActionResult<UserDto>> ChangePasswordAsync([FromBody] ChangePasswordRequestDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _userService.ChangePasswordAsync(_tokenService.UserId.GetValueOrDefault(), dto);
 
-            await _userService.ChangePasswordAsync(_tokenService.UserId.GetValueOrDefault(), dto);
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }
@@ -85,10 +71,10 @@ namespace NetCore7API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public virtual async Task<ActionResult> DeleteAsync(Guid id)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var result = await _userService.DeleteAsync(_tokenService.UserId.GetValueOrDefault());
 
-            await _userService.DeleteAsync(_tokenService.UserId.GetValueOrDefault());
+            if (result.IsFailure)
+                return BadRequest(result.Errors);
 
             return NoContent();
         }

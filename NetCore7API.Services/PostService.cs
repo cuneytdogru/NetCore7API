@@ -5,178 +5,197 @@ using NetCore7API.Domain.Models;
 using NetCore7API.Domain.Repositories;
 using NetCore7API.Domain.Services;
 using NetCore7API.Domain.DTOs.Comment;
+using NetCore7API.Domain.Results;
+using NetCore7API.Domain.Errors;
+using FluentValidation;
 
 namespace NetCore7API.Services
 {
-    public class PostService : IPostService
+    public class PostService : BaseService, IPostService
     {
         private readonly IPostRepository _postRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly ITokenService _tokenService;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IValidator<Post> _validator;
 
         public PostService(
+            ITokenService tokenService,
+            IUnitOfWork unitOfWork,
             IPostRepository postRepository,
             IUserRepository userRepository,
-            ITokenService tokenService,
-            IUnitOfWork unitOfWork
-            )
+            IValidator<Post> validator
+            ) : base(tokenService, unitOfWork, userRepository)
         {
             _postRepository = postRepository;
-            _userRepository = userRepository;
-            _tokenService = tokenService;
-            _unitOfWork = unitOfWork;
+            _validator = validator;
         }
 
-        public async Task<Guid> CreateAsync(CreatePostDto dto)
+        public async Task<IResult<Guid>> CreateAsync(CreatePostRequestDto dto)
         {
-            var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
+            var user = await GetCurrentUser();
 
-            if (user is null)
-                throw new UserException("Failed to find User!");
-
-            var post = new Post(user.Id, dto.Text, dto.ImageURL);
+            var post = new Post(user, dto.Text, dto.ImageURL);
 
             _postRepository.Add(post);
 
+            var validationResult = await _validator.ValidateAsync(post);
+
+            if (!validationResult.IsValid)
+                return Result<Guid>.Failure(Error.ValidationErrors(validationResult.ToDictionary()));
+
             await _unitOfWork.SaveChangesAsync();
 
-            return post.Id;
+            return Result<Guid>.Success(post.Id);
         }
 
-        public async Task UpdateAsync(Guid id, UpdatePostDto dto)
+        public async Task<IResult> UpdateAsync(Guid id, UpdatePostRequestDto dto)
         {
+            var user = await GetCurrentUser();
+
             var post = await _postRepository.FindAsync(id);
 
             if (post is null)
-                throw new UserException("Post not found.");
+                return Result.Failure(Error.NotFound("Post not found."));
 
-            if (post.UserId != _tokenService.UserId)
-                throw new UserUnauthorizedException("You are not authorized to modify this post.");
+            post.Update(dto, user);
 
-            post.Update(dto);
+            var validationResult = await _validator.ValidateAsync(post);
+
+            if (!validationResult.IsValid)
+                return Result.Failure(Error.ValidationErrors(validationResult.ToDictionary()));
 
             _postRepository.Update(post);
 
             await _unitOfWork.SaveChangesAsync();
+
+            return Result.Success();
         }
 
-        public async Task LikeAsync(Guid id, LikePostDto dto)
+        public async Task<IResult> LikeAsync(Guid id, LikePostRequestDto dto)
         {
-            if (_tokenService.UserId is null)
-                throw new UserUnauthorizedException("User is not authorized!");
-
-            var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
-
-            if (user is null)
-                throw new UserException("Failed to find User!");
+            var user = await GetCurrentUser();
 
             var post = await _postRepository.FindAsync(id);
 
             if (post is null)
-                throw new UserException("Post not found.");
+                return Result.Failure(Error.NotFound("Post not found."));
 
             await _postRepository.LoadLike(post, user.Id);
 
             if (!dto.IsLiked)
             {
-                post.RemoveLike(user.Id);
+                post.RemoveLike(user);
             }
             else
             {
-                post.AddLike(user.Id);
+                post.AddLike(user);
             }
+
+            var validationResult = await _validator.ValidateAsync(post);
+
+            if (!validationResult.IsValid)
+                return Result.Failure(Error.ValidationErrors(validationResult.ToDictionary()));
 
             _postRepository.Update(post);
 
             await _unitOfWork.SaveChangesAsync();
+
+            return Result.Success();
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task<IResult> DeleteAsync(Guid id)
         {
+            var user = await GetCurrentUser();
+
             var post = await _postRepository.FindAsync(id);
 
             if (post is null)
-                return;
+                return Result.Failure(Error.NotFound("Post not found."));
 
-            if (post.UserId != _tokenService.UserId)
-                throw new UserUnauthorizedException("You are not authorized to modify this post.");
+            post.Delete(user);
 
             _postRepository.SoftDelete(post);
 
             await _unitOfWork.SaveChangesAsync();
+
+            return Result.Success();
         }
 
-        public async Task<Guid> AddCommentAsync(Guid id, CreateCommentDto dto)
+        public async Task<IResult<Guid>> AddCommentAsync(Guid id, CreateCommentRequestDto dto)
         {
-            if (_tokenService.UserId is null)
-                throw new UserUnauthorizedException("User is not authorized!");
-
-            var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
-
-            if (user is null)
-                throw new UserException("Failed to find User!");
+            var user = await GetCurrentUser();
 
             var post = await _postRepository.FindAsync(id);
 
             if (post is null)
-                throw new UserException("Post not found.");
+                return Result<Guid>.Failure(Error.NotFound("Post not found."));
 
-            var comment = post.AddComment(user.Id, dto);
+            var comment = post.AddComment(dto, user);
+
+            _postRepository.Update(post);
+
+            var validationResult = await _validator.ValidateAsync(post);
+
+            if (!validationResult.IsValid)
+                return Result<Guid>.Failure(Error.ValidationErrors(validationResult.ToDictionary()));
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return Result<Guid>.Success(comment.Id);
+        }
+
+        public async Task<IResult> UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentRequestDto dto)
+        {
+            var user = await GetCurrentUser();
+
+            var post = await _postRepository.FindAsync(id);
+
+            if (post is null)
+                return Result.Failure(Error.NotFound("Post not found."));
+
+            var comment = await _postRepository.LoadComment(post, commentId);
+
+            if (comment is null)
+                return Result.Failure(Error.NotFound("Comment not found."));
+
+            post.UpdateComment(dto, comment, user);
+
+            var validationResult = await _validator.ValidateAsync(post);
+
+            if (!validationResult.IsValid)
+                return Result.Failure(Error.ValidationErrors(validationResult.ToDictionary()));
 
             _postRepository.Update(post);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return comment.Id;
+            return Result.Success();
         }
 
-        public async Task UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentDto dto)
+        public async Task<IResult> RemoveCommentAsync(Guid id, Guid commentId)
         {
-            if (_tokenService.UserId is null)
-                throw new UserUnauthorizedException("User is not authorized!");
-
-            var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
-
-            if (user is null)
-                throw new UserException("Failed to find User!");
+            var user = await GetCurrentUser();
 
             var post = await _postRepository.FindAsync(id);
 
             if (post is null)
-                throw new UserException("Post not found.");
+                return Result.Failure(Error.NotFound("Post not found."));
 
-            await _postRepository.LoadComment(post, commentId);
+            var comment = await _postRepository.LoadComment(post, commentId);
 
-            post.UpdateComment(user.Id, commentId, dto);
+            if (comment is null)
+                return Result.Failure(Error.NotFound("Comment not found."));
 
-            _postRepository.Update(post);
+            post.RemoveComment(comment, user);
 
-            await _unitOfWork.SaveChangesAsync();
-        }
+            var validationResult = await _validator.ValidateAsync(post);
 
-        public async Task RemoveCommentAsync(Guid id, Guid commentId)
-        {
-            if (_tokenService.UserId is null)
-                throw new UserUnauthorizedException("User is not authorized!");
-
-            var user = await _userRepository.FindAsync(_tokenService.UserId.Value);
-
-            if (user is null)
-                throw new UserException("Failed to find User!");
-
-            var post = await _postRepository.FindAsync(id);
-
-            if (post is null)
-                throw new UserException("Post not found.");
-
-            await _postRepository.LoadComment(post, commentId);
-
-            post.RemoveComment(user.Id, commentId);
+            if (!validationResult.IsValid)
+                return Result.Failure(Error.ValidationErrors(validationResult.ToDictionary()));
 
             _postRepository.Update(post);
 
             await _unitOfWork.SaveChangesAsync();
+
+            return Result.Success();
         }
     }
 }

@@ -9,9 +9,10 @@ using System.Threading.Tasks;
 
 namespace NetCore7API.Domain.DTOs.Comment
 {
-    public class HideCommentDto
+    public class UpdateCommentRequestDto
     {
         [Required]
-        public bool IsHidden { get; set; }
+        [MaxLength(Models.Constants.DataAnnotations.MaxLength.Text)]
+        public string Text { get; set; }
     }
 }

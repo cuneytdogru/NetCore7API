@@ -117,7 +117,7 @@ namespace NetCore7API.Middleware
             if (!string.IsNullOrWhiteSpace(identifier))
                 apiResponse.Identifier = identifier;
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(apiResponse, DefaultJsonOptions.Web));
+            await context.Response.WriteAsync(JsonSerializer.Serialize(apiResponse, apiResponse.GetType(), DefaultJsonOptions.Web));
         }
 
         private bool IsValidJson(string s)

@@ -37,16 +37,14 @@ namespace NetCore7API.EFCore.Repositories
             return post;
         }
 
-        public async Task<Post?> LoadComment(Post post, Guid commentId)
+        public async Task<Comment?> LoadComment(Post post, Guid commentId)
         {
-            await Context.Entry(post)
+            return await Context.Entry(post)
                .Collection(x => x.Comments)
                .Query()
                .Where(x => x.Id == commentId)
                .Where(x => x.PostId == post.Id)
-               .LoadAsync();
-
-            return post;
+               .FirstOrDefaultAsync();
         }
     }
 }

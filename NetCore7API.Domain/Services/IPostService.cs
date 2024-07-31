@@ -2,23 +2,24 @@
 using NetCore7API.Domain.DTOs.Comment;
 using NetCore7API.Domain.DTOs.Post;
 using NetCore7API.Domain.Filters;
+using NetCore7API.Domain.Results;
 
 namespace NetCore7API.Domain.Services
 {
     public interface IPostService
     {
-        Task<Guid> CreateAsync(CreatePostDto dto);
+        Task<IResult<Guid>> CreateAsync(CreatePostRequestDto dto);
 
-        Task UpdateAsync(Guid id, UpdatePostDto dto);
+        Task<IResult> UpdateAsync(Guid id, UpdatePostRequestDto dto);
 
-        Task LikeAsync(Guid id, LikePostDto dto);
+        Task<IResult> LikeAsync(Guid id, LikePostRequestDto dto);
 
-        Task DeleteAsync(Guid id);
+        Task<IResult> DeleteAsync(Guid id);
 
-        Task<Guid> AddCommentAsync(Guid id, CreateCommentDto dto);
+        Task<IResult<Guid>> AddCommentAsync(Guid id, CreateCommentRequestDto dto);
 
-        Task UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentDto dto);
+        Task<IResult> UpdateCommentAsync(Guid id, Guid commentId, UpdateCommentRequestDto dto);
 
-        Task RemoveCommentAsync(Guid id, Guid commentId);
+        Task<IResult> RemoveCommentAsync(Guid id, Guid commentId);
     }
 }

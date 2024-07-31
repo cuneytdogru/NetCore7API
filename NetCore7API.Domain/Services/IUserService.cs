@@ -1,15 +1,16 @@
 ﻿using NetCore7API.Domain.DTOs.User;
+using NetCore7API.Domain.Results;
 
 namespace NetCore7API.Domain.Services
 {
     public interface IUserService
     {
-        Task<Guid> RegisterAsync(RegisterUserDto dto);
+        Task<IResult<Guid>> RegisterAsync(RegisterUserRequestDto dto);
 
-        Task UpdateAsync(Guid id, UpdateUserDto dto);
+        Task<IResult> UpdateAsync(Guid id, UpdateUserRequestDto dto);
 
-        Task ChangePasswordAsync(Guid id, ChangePasswordDto dto);
+        Task<IResult> ChangePasswordAsync(Guid id, ChangePasswordRequestDto dto);
 
-        Task DeleteAsync(Guid id);
+        Task<IResult> DeleteAsync(Guid id);
     }
 }

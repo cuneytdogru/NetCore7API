@@ -1,6 +1,5 @@
 ﻿using NetCore7API.Domain.DTOs.Comment;
 using NetCore7API.Domain.DTOs.Interfaces;
-using NetCore7API.Domain.DTOs.Like;
 using NetCore7API.Domain.DTOs.User;
 using NetCore7API.Domain.Models.Interfaces;
 using System;

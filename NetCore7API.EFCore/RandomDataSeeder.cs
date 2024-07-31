@@ -154,7 +154,7 @@ namespace NetCore7API.EFCore
                 for (int k = 0; k < NUMBER_OF_POSTS; k++)
                 {
                     var post = new Domain.Models.Post(
-                        context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)).Id,
+                        context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)),
                         TextList.ElementAt(randomGenerator.Next(TextList.Count)),
                         ImageList.ElementAt(randomGenerator.Next(ImageList.Count)));
 
@@ -163,14 +163,13 @@ namespace NetCore7API.EFCore
 
                     for (int c = 0; c < numberOfComments; c++)
                     {
-                        post.AddComment(context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)).Id,
-                            new Domain.DTOs.Comment.CreateCommentDto() { Text = TextList.ElementAt(randomGenerator.Next(TextList.Count)) });
+                        post.AddComment(new Domain.DTOs.Comment.CreateCommentRequestDto() { Text = TextList.ElementAt(randomGenerator.Next(TextList.Count)) }, context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)));
                     }
 
                     for (int l = 0; l < numberOfLikes; l++)
                     {
                         post.AddLike(
-                            context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)).Id);
+                            context.Users.Local.ElementAt(randomGenerator.Next(TextList.Count)));
                     }
 
                     context.Posts.Add(post);
